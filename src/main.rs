@@ -55,4 +55,5 @@ fn main() {
     println!("Hello, world!");
     // guess_game();
     basic_concept::basic_concept::variable::test_variable();
+    basic_concept::basic_concept::data_types::test_data_types();
 }
