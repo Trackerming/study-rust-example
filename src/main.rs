@@ -54,5 +54,5 @@ fn guess_game() {
 fn main() {
     println!("Hello, world!");
     // guess_game();
-    basic_concept::basic_concept::variable::mutable();
+    basic_concept::basic_concept::variable::test_variable();
 }
