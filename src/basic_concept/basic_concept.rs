@@ -165,7 +165,7 @@ pub mod data_types {
         while index <= a2.len() {
             let ele = a2[index];
             print!("a2[{index}]: {ele} ");
-            index+=1;
+            index += 1;
         }
     }
 
@@ -178,5 +178,30 @@ pub mod data_types {
         data_type_define();
         scalar_type_handle();
         compound_type_handle();
+    }
+}
+
+pub mod function {
+    fn test_expression_statements(value: u16, flag: char) -> u16 {
+        let y = {
+            let x = value / 2;
+            x + 1 // 没有分号
+        };
+        println!("value= {value}, y= {y}, flag: {flag}"); // value= 32, y= 17, flag: E
+        return y;
+    }
+
+    // 最简化操作;
+    fn double_input(input: u16) -> u16 {
+        // 与下面注释的语句等效
+        input * 2
+        // return input * 2;
+    }
+
+    pub fn test_function_handle() {
+        let rslt1 = test_expression_statements(32, 'E');
+        println!("result {rslt1}");
+        let rslt2 = double_input(rslt1);
+        println!("result {rslt2}");
     }
 }
