@@ -2,6 +2,8 @@ use rand::Rng;
 use std::cmp::Ordering;
 use std::io;
 
+mod basic_concept;
+
 fn guess_game() {
     println!("Guess your number!");
     let secret_number = rand::thread_rng().gen_range(1..=100);
@@ -51,5 +53,6 @@ fn guess_game() {
 
 fn main() {
     println!("Hello, world!");
-    guess_game();
+    // guess_game();
+    basic_concept::basic_concept::variable::mutable();
 }
