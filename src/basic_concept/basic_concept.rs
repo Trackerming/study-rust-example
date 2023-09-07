@@ -205,3 +205,95 @@ pub mod function {
         println!("result {rslt2}");
     }
 }
+
+pub mod control_flow {
+    fn test_if() {
+        let flag = false;
+        if flag {
+            println!("condition is True.");
+        } else {
+            println!("condition is false.");
+        }
+        let flag = 3;
+        /*error[E0308]: mismatched types
+          --> src/basic_concept/basic_concept.rs:218:12
+           |
+          218 |         if flag {
+           |            ^^^^ expected `bool`, found integer
+            For more information about this error, try `rustc --explain E0308`.
+        */
+        /*if flag {
+            println!("condition is True.");
+        } else {
+            println!("condition is false.");
+        }*/
+        if flag <= 1 {
+            println!("flag is lessEqual than 1.");
+        } else if flag <= 2 {
+            println!("flag is lessEqual than 2.");
+        } else if flag <= 3 {
+            println!("flag is lessEqual than 3.");
+        } else {
+            println!("flag is greater than 1.");
+        }
+        // 条件赋值
+        let condition = false;
+        // 每个分支返回的类型一定是要一致的；应该是好处是编译期间就能确定类型
+        let num = if condition { 18 } else { 314 };
+        println!("{num}");
+    }
+
+    pub fn test_loop_handle() {
+        let mut num = 1;
+        let result = loop {
+            num += 1;
+            if num == 10 {
+                break num * 2;
+            }
+        };
+        println!("result {result}");
+        'out_loop: loop {
+            let mut remainder = 10;
+            loop {
+                if remainder == 9 {
+                    println!("num = {num}, remainder = {remainder}");
+                    break;
+                }
+                // 指定循环退出;
+                if num > 26 {
+                    println!("2 num = {num}, remainder = {remainder}");
+                    break 'out_loop;
+                }
+                remainder -= 1;
+            }
+            num += 1;
+        }
+    }
+
+    fn test_while_handle() {
+        let mut num = 100;
+        while num <= 108 {
+            num += 10;
+            println!("{num}");
+        }
+    }
+
+    fn test_for_handle() {
+        let array: [u16; 5] = [12, 34, 56, 67, 787];
+        for ele in array {
+            print!("{ele} ");
+        }
+        println!();
+        for i in (0..array.len()) {
+            let ele = array[i];
+            print!("{ele} ");
+        }
+    }
+
+    pub fn test_control_flow_handle() {
+        test_if();
+        test_loop_handle();
+        test_while_handle();
+        test_for_handle();
+    }
+}
