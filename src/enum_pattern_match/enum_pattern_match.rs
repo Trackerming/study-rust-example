@@ -60,3 +60,26 @@ pub mod enum_usage {
         msg.call();
     }
 }
+
+pub mod option_usage {
+    #[derive(Debug)]
+    enum Option<T> {
+        None,
+        Some(T),
+    }
+    pub fn option_uasge_study() {
+        let some_number:Option<i32> = Some(5);
+        let some_char = Some('S');
+        let absent_number: Option<i32> = Option::None;
+        println!("{:?}", absent_number);
+        let number: i32 = 32;
+        /*
+        error[E0277]: cannot add `option_usage::Option<i32>` to `i32`
+         --> src/enum_pattern_match/enum_pattern_match.rs:76:26
+          |
+       76 |         let sum = number + some_number;
+          |                          ^ no implementation for `i32 + option_usage::Option<i32>`
+        */
+        // let sum = number + some_number;
+    }
+}
