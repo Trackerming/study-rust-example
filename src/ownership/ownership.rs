@@ -176,11 +176,70 @@ pub mod reference_borrow {
     /*fn dangle_reference_study() -> &String { // returns a reference to a String
         let str = String::from("dangle hello."); // 创建一个字符串
         &str 返回字符串的引用
-    }*/ //离开scope，drop了，内存释放了，引用就dangle了；
+    }*/
+ //离开scope，drop了，内存释放了，引用就dangle了；
 
     pub fn reference_borrow_study() {
         reference_study();
         reference_mutable_study();
         reference_mutable_immutable_study();
+    }
+}
+
+pub mod slice {
+    fn find_first_word_end_index(source_str: &String) -> usize {
+        let bytes = source_str.as_bytes(); // 转换为byte的slice用于遍历
+                                           // 首先使用 iter 方法在字节数组上创建一个迭代器
+                                           // enumerate 包装 iter 的结果并将每个元素作为集合的一部分返回。元组代替。
+                                           // 从 enumerate 返回的元组的第一个元素是索引，第二个元素是对该元素的引用
+        for (i, &item) in bytes.iter().enumerate() {
+            if item == b' ' {
+                return i;
+            }
+        }
+        return source_str.len();
+    }
+
+    // 字符串的切片表示为&str
+    fn find_first_word(source_str: &String) -> &str {
+        let index = find_first_word_end_index(source_str);
+        // slice的start_index和end_index,end_index比元素大1；0和源字符串的末尾的index可以省略
+        return &source_str[..index];
+    }
+
+    fn find_first_word_from_slice(str: &str) -> &str {
+        let bytes = str.as_bytes();
+        let mut index = str.len();
+        for (i, &item) in bytes.iter().enumerate() {
+            if item == b' ' {
+                index = i;
+            }
+        }
+        return &str[..index];
+    }
+
+    fn string_literal_slice() {
+        // 这里的string_literal的类型是&str（字符串切片），这是之乡二进制文件的切片，也是字符串文件不可变的原因；
+        let string_literal = "hello string literal";
+    }
+
+    fn array_slice() {
+        let a: [u32; 5] = [28, 34, 52, 43, 75];
+        let slice = &a[1..3];
+        assert_eq!(slice, &[34, 52]);
+    }
+
+    pub fn slice_study() {
+        let mut source_str = String::from("slice hello");
+        let index = find_first_word_end_index(&source_str);
+        let first_word = find_first_word(&source_str);
+        println!("first word end index {index}");
+        // error[E0502]: cannot borrow `source_str` as mutable because it is also borrowed as immutable
+        // source_str.clear();
+        println!("frist word: {first_word}");
+        string_literal_slice();
+        let fist_slice = find_first_word_from_slice(&source_str[2..8]);
+        println!("frist slice: {fist_slice}");
+        array_slice();
     }
 }
