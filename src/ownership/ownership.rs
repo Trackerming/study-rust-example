@@ -82,7 +82,7 @@ pub mod ownership_test {
     fn takes_and_gives_ownership(a_string: String) -> String {
         a_string // a_string is returned and moves out to the calling function
     }
-    fn caculate_length(str:String) ->(String, usize){
+    fn caculate_length(str: String) -> (String, usize) {
         let length = str.len();
         (str, length)
     }
@@ -102,5 +102,85 @@ pub mod ownership_test {
         string_mul_to_one_var_study();
         move_function_study();
         move_function_ownership_study_2();
+    }
+}
+
+pub mod reference_borrow {
+
+    fn caculate_length(str_ref: &String) -> usize {
+        str_ref.len()
+    }
+    // 如果引用的数据要更新如何处理
+    /*
+     error[E0596]: cannot borrow `*str_ref` as mutable, as it is behind a `&` reference
+    --> src/ownership/ownership.rs:115:9
+     |
+     115 |         str_ref.push_str(" modify str");
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `str_ref` is a `&` reference, so the data it refers to cannot be borrowed as mutable
+     */
+    fn modify_str(str_ref: &String) {
+        // str_ref.push_str(" modify str");
+    }
+    // 上述方法解决如下
+    fn modify_str_correct(str_ref: &mut String) {
+        str_ref.push_str(" modify str");
+    }
+    fn reference_study() {
+        let mut str = String::from("reference_borrow->reference_study hello");
+        let len = caculate_length(&str);
+        // str 离开了caculate_length的scope，但是str依然能使用；
+        println!("str after call: {str}, len = {len}");
+        modify_str_correct(&mut str);
+        println!("str after modify_str_correct(str_ref: &mut String): {str}");
+    }
+    fn reference_mutable_study() {
+        let mut str = String::from("reference_borrow->reference_mutable_study hello");
+        let ref1 = &mut str;
+        /*
+          error[E0499]: cannot borrow `str` as mutable more than once at a time
+            --> src/ownership/ownership.rs:139:20
+            |
+        138 |         let ref1 = &mut str;
+            |                    -------- first mutable borrow occurs here
+        139 |         let ref2 = &mut str;
+            |                    ^^^^^^^^ second mutable borrow occurs here
+          */
+        // let ref2 = &mut str;
+        println!("ref1 {ref1}"); // ref1 reference_borrow->reference_mutable_study hello
+                                 // println!("ref2 {ref2}");
+                                 // 解决办法如下
+        {
+            let ref2 = &mut str;
+            println!("ref2 {ref2}");
+        }
+    }
+    fn reference_mutable_immutable_study() {
+        let mut str = String::from("reference_borrow->reference_mutable_study hello");
+        let ref1 = &str;
+        let ref2 = &str;
+        // error[E0502]: cannot borrow `str` as mutable because it is also borrowed as immutable
+        // let ref3 = &mut str;
+        println!("ref1: {}, ref2: {}", ref1, ref2);
+        // 引用的范围从引入它的地方开始，一直持续到上次使用该引用时为止，所以因为前面是最后一次使用两个不变引用，这里可以正常定义可变引用；
+        let ref3 = &mut str;
+        println!("ref3: {ref3}");
+    }
+
+    /*
+    error[E0106]: missing lifetime specifier
+      --> src/ownership/ownership.rs:169:36
+        |
+    169 |     fn dangle_reference_study() -> &String {
+        |                                    ^ expected named lifetime parameter
+    */
+    /*fn dangle_reference_study() -> &String { // returns a reference to a String
+        let str = String::from("dangle hello."); // 创建一个字符串
+        &str 返回字符串的引用
+    }*/ //离开scope，drop了，内存释放了，引用就dangle了；
+
+    pub fn reference_borrow_study() {
+        reference_study();
+        reference_mutable_study();
+        reference_mutable_immutable_study();
     }
 }

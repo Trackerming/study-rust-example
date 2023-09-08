@@ -60,4 +60,5 @@ fn main() {
     // basic_concept::basic_concept::function::test_function_handle();
     // basic_concept::basic_concept::control_flow::test_control_flow_handle();
     ownership::ownership::ownership_test::ownership_test_handle();
+    ownership::ownership::reference_borrow::reference_borrow_study();
 }
