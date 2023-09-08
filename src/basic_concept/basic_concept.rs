@@ -284,7 +284,7 @@ pub mod control_flow {
             print!("{ele} ");
         }
         println!();
-        for i in (0..array.len()) {
+        for i in 0..array.len() {
             let ele = array[i];
             print!("{ele} ");
         }

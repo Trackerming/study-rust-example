@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use std::io;
 
 mod basic_concept;
+mod ownership;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -57,5 +58,6 @@ fn main() {
     // basic_concept::basic_concept::variable::test_variable();
     // basic_concept::basic_concept::data_types::test_data_types();
     // basic_concept::basic_concept::function::test_function_handle();
-    basic_concept::basic_concept::control_flow::test_control_flow_handle();
+    // basic_concept::basic_concept::control_flow::test_control_flow_handle();
+    ownership::ownership::ownership_test::ownership_test_handle();
 }
