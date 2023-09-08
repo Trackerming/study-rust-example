@@ -69,4 +69,5 @@ fn main() {
     enum_pattern_match::enum_pattern_match::define_enum::define_enum_study();
     enum_pattern_match::enum_pattern_match::enum_usage::use_enum_study();
     enum_pattern_match::enum_pattern_match::option_usage::option_uasge_study();
+    enum_pattern_match::enum_pattern_match::match_control_flow::match_control_flow_study();
 }
