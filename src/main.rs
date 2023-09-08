@@ -5,6 +5,7 @@ use std::io;
 mod basic_concept;
 mod ownership;
 mod struct_related;
+mod enum_pattern_match;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -65,4 +66,6 @@ fn main() {
     // ownership::ownership::slice::slice_study();
     struct_related::struct_related::define_init_struct::define_init_struct_study();
     struct_related::struct_related::retangle_struct::retangle_struct_study();
+    enum_pattern_match::enum_pattern_match::define_enum::define_enum_study();
+    enum_pattern_match::enum_pattern_match::enum_usage::use_enum_study();
 }
