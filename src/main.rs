@@ -4,6 +4,7 @@ use std::io;
 
 mod basic_concept;
 mod ownership;
+mod struct_related;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -61,5 +62,7 @@ fn main() {
     // basic_concept::basic_concept::control_flow::test_control_flow_handle();
     // ownership::ownership::ownership_test::ownership_test_handle();
     // ownership::ownership::reference_borrow::reference_borrow_study();
-    ownership::ownership::slice::slice_study();
+    // ownership::ownership::slice::slice_study();
+    struct_related::struct_related::define_init_struct::define_init_struct_study();
+    struct_related::struct_related::retangle_struct::retangle_struct_study();
 }
