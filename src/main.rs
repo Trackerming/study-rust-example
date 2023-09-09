@@ -70,4 +70,5 @@ fn main() {
     enum_pattern_match::enum_pattern_match::enum_usage::use_enum_study();
     enum_pattern_match::enum_pattern_match::option_usage::option_uasge_study();
     enum_pattern_match::enum_pattern_match::match_control_flow::match_control_flow_study();
+    enum_pattern_match::enum_pattern_match::if_let_control::if_let_control_study();
 }

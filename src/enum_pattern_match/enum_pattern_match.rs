@@ -126,3 +126,46 @@ pub mod match_control_flow {
         println!("coin {:?} decimal {}", coin, decimal)
     }
 }
+
+pub mod if_let_control {
+    fn std_option_match_exercise(opt: Option<i32>) -> Option<i32> {
+        match opt {
+            Option::None => Option::None,
+            Option::Some(int_val) => {
+                println!("option int val {}", int_val);
+                return Option::Some(int_val * 2);
+            }
+        }
+    }
+    fn std_option_if_let_exercise(opt: &Option<char>) -> Option<char> {
+        if let Some(char_ele) = opt {
+            println!("std option if let exercise: {char_ele}");
+            return Option::Some(char_ele.to_ascii_lowercase());
+        } else {
+            return Option::None;
+        }
+    }
+    pub fn if_let_control_study() {
+        let config_max = Some(2u8);
+        let mut count_a = 0;
+        // match只想匹配一种情况执行的时候
+        match config_max {
+            Some(max) => println!("max {}", max),
+            _ => count_a += 1,
+        }
+        // 等效于如下
+        let mut count_b = 0;
+        if let Some(max) = config_max {
+            println!("if let max {max}");
+        } else {
+            count_b += 1;
+        }
+        println!("count_a {}, count_b {}", count_a, count_b);
+        std_option_match_exercise(Option::None);
+        let result = std_option_match_exercise(Some(12));
+        println!("result {:?}", result);
+        let opt = Some('A');
+        let result = std_option_if_let_exercise(&opt);
+        println!("result {:?}", result);
+    }
+}
