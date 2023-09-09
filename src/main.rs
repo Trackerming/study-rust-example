@@ -3,9 +3,10 @@ use std::cmp::Ordering;
 use std::io;
 
 mod basic_concept;
-mod ownership;
-mod struct_related;
 mod enum_pattern_match;
+mod ownership;
+mod package_crate_module;
+mod struct_related;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -64,11 +65,12 @@ fn main() {
     // ownership::ownership::ownership_test::ownership_test_handle();
     // ownership::ownership::reference_borrow::reference_borrow_study();
     // ownership::ownership::slice::slice_study();
-    struct_related::struct_related::define_init_struct::define_init_struct_study();
-    struct_related::struct_related::retangle_struct::retangle_struct_study();
+    struct_related::define_init_struct::define_init_struct_study();
+    struct_related::retangle::retangle_struct_study();
     enum_pattern_match::enum_pattern_match::define_enum::define_enum_study();
     enum_pattern_match::enum_pattern_match::enum_usage::use_enum_study();
     enum_pattern_match::enum_pattern_match::option_usage::option_uasge_study();
     enum_pattern_match::enum_pattern_match::match_control_flow::match_control_flow_study();
     enum_pattern_match::enum_pattern_match::if_let_control::if_let_control_study();
+    package_crate_module::package_crate_module::package_crate_path::front_of_house_root();
 }

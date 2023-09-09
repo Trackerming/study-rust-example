@@ -177,7 +177,7 @@ pub mod reference_borrow {
         let str = String::from("dangle hello."); // 创建一个字符串
         &str 返回字符串的引用
     }*/
- //离开scope，drop了，内存释放了，引用就dangle了；
+    //离开scope，drop了，内存释放了，引用就dangle了；
 
     pub fn reference_borrow_study() {
         reference_study();
