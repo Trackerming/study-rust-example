@@ -7,6 +7,7 @@ mod enum_pattern_match;
 mod ownership;
 mod package_crate_module;
 mod struct_related;
+mod common_collection;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -73,4 +74,5 @@ fn main() {
     enum_pattern_match::enum_pattern_match::match_control_flow::match_control_flow_study();
     enum_pattern_match::enum_pattern_match::if_let_control::if_let_control_study();
     package_crate_module::package_crate_module::package_crate_path::front_of_house_root();
+    common_collection::vector_study::vector_usage_study();
 }
