@@ -3,11 +3,11 @@ use std::cmp::Ordering;
 use std::io;
 
 mod basic_concept;
+mod common_collection;
 mod enum_pattern_match;
 mod ownership;
 mod package_crate_module;
 mod struct_related;
-mod common_collection;
 
 fn guess_game() {
     println!("Guess your number!");
@@ -75,4 +75,5 @@ fn main() {
     enum_pattern_match::enum_pattern_match::if_let_control::if_let_control_study();
     package_crate_module::package_crate_module::package_crate_path::front_of_house_root();
     common_collection::vector_study::vector_usage_study();
+    common_collection::string_study::string_usage_study();
 }
