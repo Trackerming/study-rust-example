@@ -79,4 +79,5 @@ fn main() {
     common_collection::string_study::string_usage_study();
     common_collection::hash_map_study::hash_map_usage_study();
     error_handle::panic_unrecoverable::panic_unrecover_error_study();
+    error_handle::result_recorverable::result_recover_study();
 }

@@ -14,5 +14,5 @@ fn cause_lib_panic() {
 
 pub fn panic_unrecover_error_study() {
     // call_panic_self();
-    cause_lib_panic();
+    // cause_lib_panic();
 }
