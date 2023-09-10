@@ -82,4 +82,5 @@ fn main() {
     // error_handle::panic_unrecoverable::panic_unrecover_error_study();
     // error_handle::result_recorverable::result_recover_study();
     generic_traits_lifetime::generic_type_study::generic_type_usage_study();
+    generic_traits_lifetime::traits_study::traits_usage_study();
 }
