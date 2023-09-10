@@ -5,6 +5,7 @@ use std::io;
 mod basic_concept;
 mod common_collection;
 mod enum_pattern_match;
+mod error_handle;
 mod ownership;
 mod package_crate_module;
 mod struct_related;
@@ -77,4 +78,5 @@ fn main() {
     common_collection::vector_study::vector_usage_study();
     common_collection::string_study::string_usage_study();
     common_collection::hash_map_study::hash_map_usage_study();
+    error_handle::panic_unrecoverable::panic_unrecover_error_study();
 }
