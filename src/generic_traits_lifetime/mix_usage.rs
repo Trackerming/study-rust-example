@@ -2,7 +2,7 @@ use core::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 
-fn longer_str_with_announcement<'a, T>(str1: &'a str, str2: &'a str, anno: T) -> &'a str
+pub fn longer_str_with_announcement<'a, T>(str1: &'a str, str2: &'a str, anno: T) -> &'a str
 where
     T: Display + Debug,
 {
