@@ -83,4 +83,5 @@ fn main() {
     // error_handle::result_recorverable::result_recover_study();
     generic_traits_lifetime::generic_type_study::generic_type_usage_study();
     generic_traits_lifetime::traits_study::traits_usage_study();
+    generic_traits_lifetime::lifetime_study::lifetime_kown_study();
 }
