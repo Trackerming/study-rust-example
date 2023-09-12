@@ -7,6 +7,7 @@ mod common_collection;
 mod enum_pattern_match;
 mod error_handle;
 mod generic_traits_lifetime;
+mod iterator_closure;
 mod ownership;
 mod package_crate_module;
 mod struct_related;
@@ -59,7 +60,7 @@ fn guess_game() {
 }
 
 fn main() {
-    println!("Hello, world!");
+    println!("study rust example: ");
     // guess_game();
     // basic_concept::basic_concept::variable::test_variable();
     // basic_concept::basic_concept::data_types::test_data_types();
@@ -76,13 +77,14 @@ fn main() {
     // enum_pattern_match::enum_pattern_match::match_control_flow::match_control_flow_study();
     // enum_pattern_match::enum_pattern_match::if_let_control::if_let_control_study();
     // package_crate_module::package_crate_module::package_crate_path::front_of_house_root();
-    common_collection::vector_study::vector_usage_study();
-    common_collection::string_study::string_usage_study();
-    common_collection::hash_map_study::hash_map_usage_study();
+    // common_collection::vector_study::vector_usage_study();
+    // common_collection::string_study::string_usage_study();
+    // common_collection::hash_map_study::hash_map_usage_study();
     // error_handle::panic_unrecoverable::panic_unrecover_error_study();
     // error_handle::result_recorverable::result_recover_study();
-    generic_traits_lifetime::generic_type_study::generic_type_usage_study();
-    generic_traits_lifetime::traits_study::traits_usage_study();
-    generic_traits_lifetime::lifetime_study::lifetime_kown_study();
-    generic_traits_lifetime::mix_usage::mix_usage_study();
+    // generic_traits_lifetime::generic_type_study::generic_type_usage_study();
+    // generic_traits_lifetime::traits_study::traits_usage_study();
+    // generic_traits_lifetime::lifetime_study::lifetime_kown_study();
+    // generic_traits_lifetime::mix_usage::mix_usage_study();
+    iterator_closure::closure_study::closures_related_usage();
 }
