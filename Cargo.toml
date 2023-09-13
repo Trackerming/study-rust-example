@@ -2,9 +2,16 @@
 name = "study-rust-example"
 version = "0.1.0"
 edition = "2021"
+description = "a study example"
+license = "MIT"
+
+[profile.dev]
+# opt-level 设置控制 Rust 将应用于您的代码的优化数量，范围为 0 到 3。应用更多优化会延长编译时间
+opt-level = 0
 
 [profile.release]
 panic = "abort"
+opt-level = 3
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

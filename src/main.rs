@@ -2,15 +2,7 @@ use rand::Rng;
 use std::cmp::Ordering;
 use std::io;
 
-mod basic_concept;
-mod common_collection;
-mod enum_pattern_match;
-mod error_handle;
-mod generic_traits_lifetime;
-mod iterator_closure;
-mod ownership;
-mod package_crate_module;
-mod struct_related;
+use study_rust_example::*;
 
 fn guess_game() {
     println!("Guess your number!");
