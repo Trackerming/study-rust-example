@@ -1,0 +1,21 @@
+[package]
+name = "study-example"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license = "MIT"
+
+[profile.dev]
+# opt-level 设置控制 Rust 将应用于您的代码的优化数量，范围为 0 到 3。应用更多优化会延长编译时间
+opt-level = 0
+
+[profile.release]
+panic = "abort"
+opt-level = 3
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+c-kzg = "0.1.0"
+# 类比于npm的包的管理方式，^
+rand = "0.8.5"

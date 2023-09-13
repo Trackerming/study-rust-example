@@ -2,7 +2,7 @@ use rand::Rng;
 use std::cmp::Ordering;
 use std::io;
 
-use study_rust_example::*;
+use study_example::*;
 
 fn guess_game() {
     println!("Guess your number!");
