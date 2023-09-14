@@ -5,6 +5,10 @@ enum List {
     Nil,
 }
 
+/// 运行结果为
+/// ```txt
+/// b = 180
+/// ```
 fn store_base_type_on_heap() {
     // 正常i32会存储在栈上，这样将它存储在heap上；
     let b = Box::new(180);
@@ -21,6 +25,10 @@ enum Message {
     ChangeColer(i32, i32, i32),
 }
 
+/// 运行结果为
+/// ```txt
+/// list: Cons(32, Cons(24, Cons(36, Nil)))
+/// ```
 pub fn box_pointer_study() {
     store_base_type_on_heap();
     // 不加Box::new()会出现error[E0072]: recursive type `List` has infinite size 编译错误

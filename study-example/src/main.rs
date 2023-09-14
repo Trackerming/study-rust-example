@@ -82,4 +82,5 @@ fn main() {
     // iterator_closure::iterator_process_study::iterator_usage();
     smart_pointer::box_pointer::box_pointer_study();
     smart_pointer::deref_trait::deref_trait_study();
+    smart_pointer::drop_trait::drop_trait_study();
 }

@@ -34,6 +34,11 @@ fn hello_print(str_val: &str) {
     println!("hello {str_val}");
 }
 
+/// 运行结果为
+/// ```txt
+/// hello Rust deref coercion
+/// hello Rust deref coercion
+/// ```
 fn my_box_test() {
     let x = 10;
     let y = MyBox::new(x);
