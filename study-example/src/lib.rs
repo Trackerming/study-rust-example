@@ -12,6 +12,7 @@ pub mod generic_traits_lifetime;
 pub mod iterator_closure;
 pub mod ownership;
 pub mod package_crate_module;
+pub mod smart_pointer;
 pub mod struct_related;
 
 pub use self::basic_concept::basic_concept::control_flow;
