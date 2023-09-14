@@ -3,6 +3,7 @@ name = "study-example"
 version.workspace = true
 edition.workspace = true
 description.workspace = true
+repository.workspace = true
 license = "MIT"
 
 [profile.dev]
