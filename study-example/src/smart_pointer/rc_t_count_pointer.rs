@@ -10,7 +10,7 @@ fn multi_pointer_one_box_data() {
 }
 
 #[derive(Debug)]
-enum RcList {
+pub enum RcList {
     Cons(i32, Rc<RcList>),
     Nil,
 }

@@ -84,4 +84,5 @@ fn main() {
     smart_pointer::deref_trait::deref_trait_study();
     smart_pointer::drop_trait::drop_trait_study();
     smart_pointer::rc_t_count_pointer::rc_t_count_pointer_study();
+    smart_pointer::refcell_pointer::refcell_pointer_study();
 }
