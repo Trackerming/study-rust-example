@@ -78,7 +78,8 @@ fn main() {
     // generic_traits_lifetime::traits_study::traits_usage_study();
     // generic_traits_lifetime::lifetime_study::lifetime_kown_study();
     // generic_traits_lifetime::mix_usage::mix_usage_study();
-    iterator_closure::closure_study::closures_related_usage();
-    iterator_closure::iterator_process_study::iterator_usage();
+    // iterator_closure::closure_study::closures_related_usage();
+    // iterator_closure::iterator_process_study::iterator_usage();
     smart_pointer::box_pointer::box_pointer_study();
+    smart_pointer::deref_trait::deref_trait_study();
 }
