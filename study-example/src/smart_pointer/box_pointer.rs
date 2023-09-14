@@ -1,5 +1,5 @@
 #[derive(Debug)]
-enum List {
+pub enum List {
     // 定义为了Box，存了指向数据的指针，指针的大小也是确定的
     Cons(i32, Box<List>),
     Nil,
