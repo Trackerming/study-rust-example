@@ -80,10 +80,11 @@ fn main() {
     // generic_traits_lifetime::mix_usage::mix_usage_study();
     // iterator_closure::closure_study::closures_related_usage();
     // iterator_closure::iterator_process_study::iterator_usage();
-    smart_pointer::box_pointer::box_pointer_study();
-    smart_pointer::deref_trait::deref_trait_study();
-    smart_pointer::drop_trait::drop_trait_study();
-    smart_pointer::rc_t_count_pointer::rc_t_count_pointer_study();
-    smart_pointer::refcell_pointer::refcell_pointer_study();
-    smart_pointer::reference_cycle::reference_cycle_study();
+    // smart_pointer::box_pointer::box_pointer_study();
+    // smart_pointer::deref_trait::deref_trait_study();
+    // smart_pointer::drop_trait::drop_trait_study();
+    // smart_pointer::rc_t_count_pointer::rc_t_count_pointer_study();
+    // smart_pointer::refcell_pointer::refcell_pointer_study();
+    // smart_pointer::reference_cycle::reference_cycle_study();
+    concurrency::thread_create::thread_create_study();
 }

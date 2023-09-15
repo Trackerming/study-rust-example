@@ -6,6 +6,7 @@
 //
 pub mod basic_concept;
 pub mod common_collection;
+pub mod concurrency;
 pub mod enum_pattern_match;
 pub mod error_handle;
 pub mod generic_traits_lifetime;
