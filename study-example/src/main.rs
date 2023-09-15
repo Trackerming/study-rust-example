@@ -85,4 +85,5 @@ fn main() {
     smart_pointer::drop_trait::drop_trait_study();
     smart_pointer::rc_t_count_pointer::rc_t_count_pointer_study();
     smart_pointer::refcell_pointer::refcell_pointer_study();
+    smart_pointer::reference_cycle::reference_cycle_study();
 }
