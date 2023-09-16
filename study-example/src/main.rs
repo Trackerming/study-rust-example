@@ -86,6 +86,7 @@ fn main() {
     // smart_pointer::rc_t_count_pointer::rc_t_count_pointer_study();
     // smart_pointer::refcell_pointer::refcell_pointer_study();
     // smart_pointer::reference_cycle::reference_cycle_study();
-    concurrency::thread_create::thread_create_study();
-    concurrency::message_thread::messsage_thread_study();
+    // concurrency::thread_create::thread_create_study();
+    // concurrency::message_thread::messsage_thread_study();
+    concurrency::mutex_shared_state::mutex_shared_state_study();
 }
