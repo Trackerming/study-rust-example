@@ -89,4 +89,5 @@ fn main() {
     // concurrency::thread_create::thread_create_study();
     // concurrency::message_thread::messsage_thread_study();
     concurrency::mutex_shared_state::mutex_shared_state_study();
+    concurrency::dead_lock::dead_lock_study();
 }
