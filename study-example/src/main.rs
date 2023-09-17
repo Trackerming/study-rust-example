@@ -91,4 +91,5 @@ fn main() {
     // concurrency::mutex_shared_state::mutex_shared_state_study();
     // concurrency::dead_lock::dead_lock_study();
     object_oriented::object_oriented_feature::object_oriented_feature_study();
+    object_oriented::trait_object_for_diff_type::trait_object_for_diff_type_study();
 }
