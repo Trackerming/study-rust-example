@@ -88,6 +88,7 @@ fn main() {
     // smart_pointer::reference_cycle::reference_cycle_study();
     // concurrency::thread_create::thread_create_study();
     // concurrency::message_thread::messsage_thread_study();
-    concurrency::mutex_shared_state::mutex_shared_state_study();
-    concurrency::dead_lock::dead_lock_study();
+    // concurrency::mutex_shared_state::mutex_shared_state_study();
+    // concurrency::dead_lock::dead_lock_study();
+    object_oriented::object_oriented_feature::object_oriented_feature_study();
 }

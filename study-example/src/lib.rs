@@ -11,6 +11,7 @@ pub mod enum_pattern_match;
 pub mod error_handle;
 pub mod generic_traits_lifetime;
 pub mod iterator_closure;
+pub mod object_oriented;
 pub mod ownership;
 pub mod package_crate_module;
 pub mod smart_pointer;
