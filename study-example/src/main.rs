@@ -92,4 +92,5 @@ fn main() {
     // concurrency::dead_lock::dead_lock_study();
     object_oriented::object_oriented_feature::object_oriented_feature_study();
     object_oriented::trait_object_for_diff_type::trait_object_for_diff_type_study();
+    object_oriented::object_oriented_desgin_pattern::object_oriented_desgin_pattern_study();
 }
