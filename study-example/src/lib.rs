@@ -14,6 +14,7 @@ pub mod iterator_closure;
 pub mod object_oriented;
 pub mod ownership;
 pub mod package_crate_module;
+pub mod pattern_match;
 pub mod smart_pointer;
 pub mod struct_related;
 
