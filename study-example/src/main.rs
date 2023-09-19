@@ -96,4 +96,5 @@ fn main() {
     // pattern_match::pattern_usage_places::pattern_usage_places_study();
     // pattern_match::pattern_syntax::pattern_syntax_study();
     advance_feature::unsafe_rust::unsafe_rust_study();
+    advance_feature::advanced_trait::advanced_trait_study();
 }
