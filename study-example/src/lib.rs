@@ -4,6 +4,7 @@
 //! - 每个章节为一个模块，特殊的章节除外比如test、文档注释都是写在之前的示例上进行展示；
 //! - 每个章节的每一小节为一个子模块，模块树对应目录，每个子模块暴露一个公共的方法用于main函数进行调用测试
 //
+pub mod advance_feature;
 pub mod basic_concept;
 pub mod common_collection;
 pub mod concurrency;

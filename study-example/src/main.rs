@@ -90,9 +90,10 @@ fn main() {
     // concurrency::message_thread::messsage_thread_study();
     // concurrency::mutex_shared_state::mutex_shared_state_study();
     // concurrency::dead_lock::dead_lock_study();
-    object_oriented::object_oriented_feature::object_oriented_feature_study();
-    object_oriented::trait_object_for_diff_type::trait_object_for_diff_type_study();
-    object_oriented::object_oriented_desgin_pattern::object_oriented_desgin_pattern_study();
-    pattern_match::pattern_usage_places::pattern_usage_places_study();
-    pattern_match::pattern_syntax::pattern_syntax_study();
+    // object_oriented::object_oriented_feature::object_oriented_feature_study();
+    // object_oriented::trait_object_for_diff_type::trait_object_for_diff_type_study();
+    // object_oriented::object_oriented_desgin_pattern::object_oriented_desgin_pattern_study();
+    // pattern_match::pattern_usage_places::pattern_usage_places_study();
+    // pattern_match::pattern_syntax::pattern_syntax_study();
+    advance_feature::unsafe_rust::unsafe_rust_study();
 }
