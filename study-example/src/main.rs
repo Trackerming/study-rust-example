@@ -98,4 +98,5 @@ fn main() {
     advance_feature::unsafe_rust::unsafe_rust_study();
     advance_feature::advanced_trait::advanced_trait_study();
     advance_feature::advanced_type::advanced_type_study();
+    advance_feature::advanced_function_closures::advanced_function_closures_study();
 }
