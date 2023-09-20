@@ -97,4 +97,5 @@ fn main() {
     // pattern_match::pattern_syntax::pattern_syntax_study();
     advance_feature::unsafe_rust::unsafe_rust_study();
     advance_feature::advanced_trait::advanced_trait_study();
+    advance_feature::advanced_type::advanced_type_study();
 }
