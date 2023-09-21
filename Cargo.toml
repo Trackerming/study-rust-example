@@ -2,6 +2,7 @@
 members = [
     "study-example",
     "minigrep",
+    "hello_macro_derive",
 ]
 
 [workspace.package]

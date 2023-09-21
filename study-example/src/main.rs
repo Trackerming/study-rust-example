@@ -99,4 +99,5 @@ fn main() {
     advance_feature::advanced_trait::advanced_trait_study();
     advance_feature::advanced_type::advanced_type_study();
     advance_feature::advanced_function_closures::advanced_function_closures_study();
+    advance_feature::macros::macros_study();
 }

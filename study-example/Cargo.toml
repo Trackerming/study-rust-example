@@ -20,3 +20,4 @@ opt-level = 3
 c-kzg = "0.1.0"
 # 类比于npm的包的管理方式，^
 rand = "0.8.5"
+hello_macro_derive = { path =  "../hello_macro_derive" }
