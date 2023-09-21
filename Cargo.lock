@@ -148,7 +148,7 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "hello_macro_derive"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -223,7 +223,7 @@ checksum = "8f232d6ef707e1956a43342693d2a31e72989554d58299d7a88738cc95b0d35c"
 
 [[package]]
 name = "minigrep"
-version = "0.2.0"
+version = "0.2.1"
 
 [[package]]
 name = "minimal-lexical"
@@ -403,7 +403,7 @@ checksum = "a7cee0529a6d40f580e7a5e6c495c8fbfe21b7b52795ed4bb5e62cdf92bc6380"
 
 [[package]]
 name = "study-example"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "c-kzg",
  "hello_macro_derive",
