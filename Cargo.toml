@@ -3,6 +3,7 @@ members = [
     "study-example",
     "minigrep",
     "hello_macro_derive",
+    "web-server",
 ]
 
 [workspace.package]
