@@ -28,8 +28,9 @@ impl HelloMacro for Pancakes {
 }
 
 use hello_macro_derive::*;
-
-#[derive(HelloMacro2)]
+// 修改为外部crate以使得能publish
+//#[derive(HelloMacro2)]
+#[derive(HelloMacro)]
 struct Pancakes2;
 
 /// 运行结果如下

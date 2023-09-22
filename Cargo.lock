@@ -148,6 +148,16 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "hello_macro_derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28eb31a03d526c8d2b515516ef3d9d34cce450f4a04eeb964f468473dcb7dd34"
+dependencies = [
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "hello_macro_derive"
 version = "0.2.1"
 dependencies = [
  "quote",
@@ -406,7 +416,7 @@ name = "study-example"
 version = "0.2.1"
 dependencies = [
  "c-kzg",
- "hello_macro_derive",
+ "hello_macro_derive 0.1.0",
  "rand",
 ]
 
