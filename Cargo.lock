@@ -421,6 +421,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "study-practice"
+version = "0.2.1"
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
