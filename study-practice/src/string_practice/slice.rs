@@ -108,6 +108,6 @@ pub fn practice() {
     method_5();
     println!("slice: run method_6: ");
     method_6();
-    println!("slice: run method_2: ");
-    method_2();
+    //println!("slice: run method_2: ");
+    //method_2();
 }

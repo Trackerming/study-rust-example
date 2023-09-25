@@ -5,4 +5,5 @@ fn main() {
     study_practice::borrow_reference::practice();
     study_practice::string_practice::string::practice();
     study_practice::string_practice::slice::practice();
+    study_practice::string_practice::string_type::practice();
 }
