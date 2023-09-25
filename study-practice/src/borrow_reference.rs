@@ -177,6 +177,10 @@ fn method_11() {
     // println!("r1: {}, r2: {}", r1, r2);
 }
 
+fn unimplement() -> ! {
+    unimplemented!();
+}
+
 pub fn practice() {
     println!("run method_1: ");
     method_1();
@@ -200,4 +204,5 @@ pub fn practice() {
     method_10();
     println!("run method_11: ");
     method_11();
+    // unimplement();
 }
