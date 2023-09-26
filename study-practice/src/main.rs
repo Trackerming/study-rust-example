@@ -9,4 +9,5 @@ fn main() {
     study_practice::tuple::practice();
     study_practice::struct_practice::practice();
     study_practice::enum_practice::practice();
+    study_practice::array_practice::practice();
 }

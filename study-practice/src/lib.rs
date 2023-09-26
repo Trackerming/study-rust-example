@@ -1,3 +1,4 @@
+pub mod array_practice;
 pub mod borrow_reference;
 pub mod enum_practice;
 pub mod string_practice;
