@@ -6,4 +6,5 @@ fn main() {
     study_practice::string_practice::string::practice();
     study_practice::string_practice::slice::practice();
     study_practice::string_practice::string_type::practice();
+    study_practice::tuple::practice();
 }
