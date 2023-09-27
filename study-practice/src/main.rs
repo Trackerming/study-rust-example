@@ -1,6 +1,7 @@
 use study_practice;
 
 fn main() {
+    // 基础知识
     study_practice::var_ownership::practice();
     study_practice::borrow_reference::practice();
     study_practice::string_practice::string::practice();
@@ -11,4 +12,5 @@ fn main() {
     study_practice::enum_practice::practice();
     study_practice::array_practice::practice();
     study_practice::loop_practice::practice();
+    study_practice::match_practice::practice();
 }
