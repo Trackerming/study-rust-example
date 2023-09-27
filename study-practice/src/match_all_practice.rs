@@ -6,7 +6,7 @@ fn match_number(n: i32) {
         // 匹配一个单独的值
         1 => println!("One!"),
         // 使用 `|` 填空，不要使用 `..` 或 `..=`
-        __ => println!("match 2 -> 5"),
+        2 | 3 | 4 | 5 => println!("match 2 -> 5"),
         // 匹配一个闭区间的数值序列
         6..=10 => {
             println!("match 6 -> 10")
@@ -24,12 +24,15 @@ struct Point {
 
 fn method_2() {
     // 填空，让 p 匹配第二个分支
-    let p = Point { x: __, y: __ };
+    let p = Point { x: 3, y: 20 };
 
     match p {
         Point { x, y: 0 } => println!("On the x axis at {}", x),
         // 第二个分支
-        Point { x: 0..=5, y: y@ (10 | 20 | 30) } => println!("On the y axis at {}", y),
+        Point {
+            x: 0..=5,
+            y: y @ (10 | 20 | 30),
+        } => println!("On the y axis at {}", y),
         Point { x, y } => println!("On neither axis: ({}, {})", x, y),
     }
 }
@@ -43,10 +46,10 @@ fn method_3() {
     let msg = Message::Hello { id: 5 };
 
     match msg {
+        Message::Hello { id: id @ 3..=7 } => println!("id 值的范围在 [3, 7] 之间: {}", id),
         Message::Hello {
-            id:  3..=7,
-        } => println!("id 值的范围在 [3, 7] 之间: {}", id),
-        Message::Hello { id: newid@10 | 11 | 12 } => {
+            id: newid @ (10 | 11 | 12),
+        } => {
             println!("id 值的范围在 [10, 12] 之间: {}", newid)
         }
         Message::Hello { id } => println!("Found some other id: {}", id),
@@ -58,7 +61,7 @@ fn method_4() {
     let num = Some(4);
     let split = 5;
     match num {
-        Some(x) __ => assert!(x < split),
+        Some(x) if x < split => assert!(x < split),
         Some(x) => assert!(x >= split),
         None => (),
     }
@@ -69,7 +72,7 @@ fn method_5() {
     let numbers = (2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048);
 
     match numbers {
-        __ => {
+        (first, .., last) => {
             assert_eq!(first, 2);
             assert_eq!(last, 2048);
         }
@@ -83,8 +86,9 @@ fn method_6() {
     let r = &mut v;
 
     match r {
-        &mut value => value.push_str(" world!") 
+        value => value.push_str(" world!"),
     }
+    println!("v: {}", v);
 }
 
 pub fn practice() {
