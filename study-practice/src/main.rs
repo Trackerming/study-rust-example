@@ -10,4 +10,5 @@ fn main() {
     study_practice::struct_practice::practice();
     study_practice::enum_practice::practice();
     study_practice::array_practice::practice();
+    study_practice::loop_practice::practice();
 }
