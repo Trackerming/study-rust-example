@@ -4,10 +4,15 @@ struct Rectangle {
 }
 impl Rectangle {
     // 完成 area 方法，返回矩形 Rectangle 的面积
-    fn area
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
 }
 fn method_1() {
-    let rect1 = Rectangle { width: 30, height: 50 };
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
     assert_eq!(rect1.area(), 1500);
 }
 
@@ -18,12 +23,12 @@ struct TrafficLight {
 }
 
 impl TrafficLight {
-    pub fn show_state(__)  {
-        println!("the current state is {}", __.color);
+    pub fn show_state(&self) {
+        println!("the current state is {}", self.color);
     }
 }
 fn method_2() {
-    let light = TrafficLight{
+    let light = TrafficLight {
         color: "red".to_owned(),
     };
     // 不要拿走 `light` 的所有权
@@ -38,12 +43,12 @@ struct TrafficLight3 {
 
 impl TrafficLight3 {
     // 使用 `Self` 填空
-    pub fn show_state(__)  {
+    pub fn show_state(self: &Self) {
         println!("the current state is {}", self.color);
     }
 
     // 填空，不要使用 `Self` 或其变体
-    pub fn change_state(__) {
+    pub fn change_state(&mut self) {
         self.color = "green".to_string()
     }
 }
@@ -58,7 +63,11 @@ impl TrafficLight4 {
     // 1. 实现下面的关联函数 `new`,
     // 2. 该函数返回一个 TrafficLight 实例，包含 `color` "red"
     // 3. 该函数必须使用 `Self` 作为类型，不能在签名或者函数体中使用 `TrafficLight`
-    pub fn new() 
+    pub fn new() -> Self {
+        Self {
+            color: "red".to_owned(),
+        }
+    }
 
     pub fn get_state(&self) -> &str {
         &self.color
@@ -66,7 +75,7 @@ impl TrafficLight4 {
 }
 
 fn method_4() {
-    let light = TrafficLight::new();
+    let light = TrafficLight4::new();
     assert_eq!(light.get_state(), "red");
 }
 
@@ -80,12 +89,12 @@ impl Rectangle5 {
     fn area(&self) -> u32 {
         self.width * self.height
     }
-
+}
+impl Rectangle5 {
     fn can_hold(&self, other: &Rectangle) -> bool {
         self.width > other.width && self.height > other.height
     }
 }
-
 
 fn method_5() {}
 
@@ -97,15 +106,20 @@ enum TrafficLightColor6 {
 }
 // 为 TrafficLightColor 实现所需的方法
 impl TrafficLightColor6 {
-
+    fn color(&self) -> &str {
+        match self {
+            TrafficLightColor6::Red => "red",
+            TrafficLightColor6::Yellow => "yellow",
+            TrafficLightColor6::Green => "green",
+        }
+    }
 }
 
 fn method_6() {
     let c = TrafficLightColor6::Yellow;
     assert_eq!(c.color(), "yellow");
-    println!("{:?}",c);
+    println!("{:?}", c);
 }
-
 
 pub fn practice() {
     println!("Method run method_1: ");
