@@ -17,4 +17,5 @@ fn main() {
     study_practice::method::practice();
     study_practice::generic::practice();
     study_practice::traits::trait_base::practice();
+    study_practice::traits::trait_object::practice();
 }
