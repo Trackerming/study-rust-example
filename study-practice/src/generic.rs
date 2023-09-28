@@ -1,8 +1,24 @@
+#![allow(incomplete_features)]
+/*#![feature(generic_const_exprs)]
+fn check_size<T>(val: T)
+where
+    Assert<{ core::mem::size_of::<T>() < 768 }>: IsTrue,
+{
+    //...
+}
+// 修复 main 函数中的错误
+fn method_10() {
+    check_size([0u8; 767]);
+    check_size([0i32; 191]);
+    check_size(["hello你好"; 47]); // &str is a string reference, containing a pointer and string length in it, so it takes two word long, in x86-64, 1 word = 8 bytes
+    check_size([(); 31].map(|_| "hello你好".to_string()));  // String is a smart pointer struct, it has three fields: pointer, length and capacity, each takes 8 bytes
+    check_size(['中'; 191]); // A char takes 4 bytes in Rust
+}*/
 /// generic
 
 // 填空
-struct A;          // 具体的类型 `A`.
-struct S(A);       // 具体的类型 `S`.
+struct A; // 具体的类型 `A`.
+struct S(A); // 具体的类型 `S`.
 struct SGen<T>(T); // 泛型 `SGen`.
 
 fn reg_fn(_s: S) {}
@@ -15,19 +31,24 @@ fn generic<T>(_s: SGen<T>) {}
 
 fn method_1() {
     // 使用非泛型函数
-    reg_fn(__);          // 具体的类型
-    gen_spec_t(__);   // 隐式地指定类型参数  `A`.
-    gen_spec_i32(__); // 隐式地指定类型参数`i32`.
+    reg_fn(S(A)); // 具体的类型
+    gen_spec_t(SGen(A)); // 隐式地指定类型参数  `A`.
+    gen_spec_i32(SGen(32)); // 隐式地指定类型参数`i32`.
 
     // 显式地指定类型参数 `char`
-    generic::<char>(__);
+    generic::<char>(SGen('s'));
 
     // 隐式地指定类型参数 `char`.
-    generic(__);
+    generic(SGen('t'));
 }
 
 // 实现下面的泛型函数 sum
-fn sum
+fn sum<T>(a: T, b: T) -> T
+where
+    T: std::ops::Add<Output = T>,
+{
+    a + b
+}
 
 fn method_2() {
     assert_eq!(5, sum(2i8, 3i8));
@@ -42,48 +63,62 @@ fn method_3() {
 }
 
 // 修改以下结构体让代码工作
-struct Point<T> {
-    x: T,
-    y: T,
-}
-
-fn method_4() {
-    // 不要修改这行代码！
-    let p = Point{x: 5, y : "hello".to_string()};
-}
-
-
-// 为 Val 增加泛型参数，不要修改 `main` 中的代码
-struct Val {
-    val: f64,
-}
-
-impl Val {
-    fn value(&self) -> &f64 {
-        &self.val
-    }
-}
-
-
-fn method_5() {
-    let x = Val{ val: 3.0 };
-    let y = Val{ val: "hello".to_string()};
-    println!("{}, {}", x.value(), y.value());
-}
-
 struct Point<T, U> {
     x: T,
     y: U,
 }
 
-impl<T, U> Point<T, U> {
+fn method_4() {
+    // 不要修改这行代码！
+    let p = Point {
+        x: 5,
+        y: "hello".to_string(),
+    };
+}
+
+// 为 Val 增加泛型参数，不要修改 `main` 中的代码
+struct Val<T> {
+    val: T,
+}
+
+impl<T> Val<T> {
+    fn value(&self) -> &T {
+        &self.val
+    }
+}
+
+fn method_5() {
+    let x = Val { val: 3.0 };
+    let y = Val {
+        val: "hello".to_string(),
+    };
+    println!("{}, {}", x.value(), y.value());
+}
+
+struct Point6<T, U> {
+    x: T,
+    y: U,
+}
+
+impl<T, U> Point6<T, U> {
     // 实现 mixup，不要修改其它代码！
-    fn mixup
+    fn mixup<K, V>(&self, other_point: Point6<K, V>) -> Point6<T, V>
+    where
+        T: std::marker::Copy,
+    {
+        Point6 {
+            x: self.x,
+            y: other_point.y,
+        }
+    }
 }
 
 fn method_6() {
-    let p1 = Point { x: 5, y: 10 };
-    let p2 = Point { x: "Hello", y: '中'};
+    let p1 = Point6 { x: 5, y: 10 };
+    let p2 = Point6 {
+        x: "Hello",
+        y: '中',
+    };
 
     let p3 = p1.mixup(p2);
 
@@ -92,45 +127,42 @@ fn method_6() {
 }
 
 // 修复错误，让代码工作
-struct Point<T> {
+struct Point7<T> {
     x: T,
     y: T,
 }
 
-impl Point<f32> {
+impl Point7<f32> {
     fn distance_from_origin(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
 }
 
 fn method_7() {
-    let p = Point{x: 5, y: 10};
-    println!("{}",p.distance_from_origin())
+    let p = Point7 {
+        x: 5 as f32,
+        y: 10 as f32,
+    };
+    println!("{}", p.distance_from_origin())
 }
 
 /// const
 
 // 修复错误
 struct Array<T, const N: usize> {
-    data : [T; N]
+    data: [T; N],
 }
 
 fn method_8() {
     let arrays = [
-        Array{
-        data: [1, 2, 3],
-        },
-        Array {
-        data: [1.0, 2.0, 3.0],
-        },
-        Array {
-        data: [1, 2]
-    }
+        Array { data: [1, 2, 3] },
+        Array { data: [1, 2, 5] },
+        Array { data: [1, 2, 6] },
     ];
 }
 
 // 填空
-fn print_array<__>(__) {
+fn print_array<T: std::fmt::Debug, const N: usize>(arr: [T; N]) {
     println!("{:?}", arr);
 }
 fn method_9() {
@@ -141,29 +173,27 @@ fn method_9() {
     print_array(arr);
 }
 
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
-fn check_size<T>(val: T)
-where
-    Assert<{ core::mem::size_of::<T>() < 768 }>: IsTrue,
-{
-    //...
-}
-// 修复 main 函数中的错误
-fn method_10() {
-    check_size([0u8; 767]); 
-    check_size([0i32; 191]);
-    check_size(["hello你好"; __]); // size of &str ?
-    check_size([(); __].map(|_| "hello你好".to_string()));  // size of String?
-    check_size(['中'; __]); // size of char ?
-}
 pub enum Assert<const CHECK: bool> {}
 pub trait IsTrue {}
 impl IsTrue for Assert<true> {}
 
-
-
 pub fn practice() {
-    println!("Generic run method_1: ");
+    println!("Generic&Const run method_1: ");
     method_1();
+    println!("Generic&Const run method_2: ");
+    method_2();
+    println!("Generic&Const run method_3: ");
+    method_3();
+    println!("Generic&Const run method_4: ");
+    method_4();
+    println!("Generic&Const run method_5: ");
+    method_5();
+    println!("Generic&Const run method_6: ");
+    method_6();
+    println!("Generic&Const run method_7: ");
+    method_7();
+    println!("Generic&Const run method_8: ");
+    method_8();
+    println!("Generic&Const run method_9: ");
+    method_9();
 }
