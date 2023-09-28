@@ -16,4 +16,5 @@ fn main() {
     study_practice::match_all_practice::practice();
     study_practice::method::practice();
     study_practice::generic::practice();
+    study_practice::traits::practice();
 }
