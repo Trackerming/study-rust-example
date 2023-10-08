@@ -4,21 +4,21 @@ fn method_1() {
     let mut scores = HashMap::new();
     scores.insert("Sunface", 98);
     scores.insert("Daniel", 95);
-    scores.insert("Ashley", 69.0);
-    scores.insert("Katie", "58");
+    scores.insert("Ashley", 69);
+    scores.insert("Katie", 58);
 
     // get 返回一个 Option<&V> 枚举值
     let score = scores.get("Sunface");
-    assert_eq!(score, Some(98));
+    assert_eq!(score, Some(&98));
 
     if scores.contains_key("Daniel") {
         // 索引返回一个值 V
         let score = scores["Daniel"];
-        assert_eq!(score, __);
+        assert_eq!(score, 95);
         scores.remove("Daniel");
     }
 
-    assert_eq!(scores.len(), __);
+    assert_eq!(scores.len(), 3);
 
     for (name, score) in scores {
         println!("The score of {} is {}", name, score)
@@ -30,7 +30,7 @@ fn method_2() {
         ("Chinese Team", 100),
         ("American Team", 10),
         ("France Team", 50),
-        ];
+    ];
 
     let mut teams_map1 = HashMap::new();
     for team in &teams {
@@ -39,8 +39,9 @@ fn method_2() {
 
     // 使用两种方法实现 team_map2
     // 提示:其中一种方法是使用 `collect` 方法
-    let teams_map2...
-
+    // 方法1:
+    //let teams_map2: HashMap<&str, i32> = teams.into_iter().collect();
+    let teams_map2 = HashMap::from_iter(teams.into_iter());
     assert_eq!(teams_map1, teams_map2);
 
     println!("Success!")
@@ -54,16 +55,18 @@ fn method_3() {
     // 查询指定的 key, 若不存在时，则插入新的 kv 值
     player_stats.entry("health").or_insert(100);
 
-    assert_eq!(player_stats["health"], __);
+    assert_eq!(player_stats["health"], 100);
 
     // 通过函数来返回新的值
-    player_stats.entry("health").or_insert_with(random_stat_buff);
-    assert_eq!(player_stats["health"], __);
+    player_stats
+        .entry("health")
+        .or_insert_with(random_stat_buff);
+    assert_eq!(player_stats["health"], 100);
 
     let health = player_stats.entry("health").or_insert(50);
-    assert_eq!(health, __);
+    assert_eq!(health, &mut 100);
     *health -= 50;
-    assert_eq!(*health, __);
+    assert_eq!(*health, 50);
 
     println!("Success!")
 }
@@ -75,6 +78,7 @@ fn random_stat_buff() -> u8 {
 
 // 修复错误
 // 提示: `derive` 是实现一些常用特征的好办法
+#[derive(Debug, Hash, PartialEq, Eq)]
 struct Viking {
     name: String,
     country: String,
@@ -93,7 +97,7 @@ fn method_4() {
         (Viking::new("Einar", "Norway"), 25),
         (Viking::new("Olaf", "Denmark"), 24),
         (Viking::new("Harald", "Iceland"), 12),
-        ]);
+    ]);
 
     // 使用 derive 的方式来打印 viking 的当前状态
     for (viking, health) in &vikings {
@@ -112,9 +116,9 @@ fn method_5() {
     let v2 = "hello".to_string();
     let mut m2 = HashMap::new();
     // 所有权在这里发生了转移
-    m2.insert(v2, v1);
+    m2.insert(&v2, v1);
 
-    assert_eq!(v2, "hello");
+    assert_eq!(v2, "hello".to_string());
 
     println!("Success!")
 }
