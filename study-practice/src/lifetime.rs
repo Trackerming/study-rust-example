@@ -14,18 +14,18 @@ fn example() {
 // `i` 拥有最长的生命周期，因为它的作用域完整的包含了 `borrow1` 和 `borrow2` 。
 // 而 `borrow1` 和 `borrow2` 的生命周期并无关联，因为它们的作用域没有重叠
 fn method_1() {
-    let i = 3;
+    let i = 3;            // ----------------------+-- 'a
     {
         let borrow1 = &i; // `borrow1` 生命周期开始. ──┐
                           //                                                │
         println!("borrow1: {}", borrow1); //              │
     } // `borrow1` 生命周期结束. ──────────────────────────────────┘
     {
-        let borrow2 = &i;
+        let borrow2 = &i; // ------------------+-- 'b
 
-        println!("borrow2: {}", borrow2);
-    }
-}
+        println!("borrow2: {}", borrow2); //   |
+    } // -+
+} // -+
 
 /* 像上面的示例一样，为 `r` 和 `x` 标准生命周期，然后从生命周期的角度. */
 fn method_2() {
@@ -36,13 +36,13 @@ fn method_2() {
             //          |
             let x = 5; // -+-- 'b  |
             r = &x; //  |       |
+            println!("r: {}", r); //          |
         } // -+       |
           //          |
-        println!("r: {}", r); //          |
     } // ---------+
 }
 /* 添加合适的生命周期标注，让下面的代码工作 */
-fn longest(x: &str, y: &str) -> &str {
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
     if x.len() > y.len() {
         x
     } else {
@@ -52,8 +52,17 @@ fn longest(x: &str, y: &str) -> &str {
 fn method_3() {}
 
 /* 使用三种方法修复下面的错误  */
-fn invalid_output<'a>() -> &'a String {
-    &String::from("foo")
+// 方法1: 返回String
+/*fn invalid_output<'a>() -> String {
+    String::from("foo")
+}*/
+// 方法2 采用参数
+/*fn invalid_output<'a>(str_val: &'a str) -> &'a str {
+    str_val
+}*/
+// 方法3:采用'static
+fn invalid_output() -> &'static str {
+    "foo"
 }
 fn method_4() {}
 
@@ -67,7 +76,7 @@ fn failed_borrow<'a>() {
     let _x = 12;
 
     // ERROR: `_x` 活得不够久does not live long enough
-    let y: &'a i32 = &_x;
+    let y: &'a i32 = &12;
 
     // 在函数内使用 `'a` 将会报错，原因是 `&_x` 的生命周期显然比 `'a` 要小
     // 你不能将一个小的生命周期强转成大的
@@ -84,17 +93,17 @@ fn method_5() {
 /* 增加合适的生命周期标准，让代码工作 */
 // `i32` 的引用必须比 `Borrowed` 活得更久
 #[derive(Debug)]
-struct Borrowed(&i32);
+struct Borrowed<'a>(&'a i32);
 // 类似的，下面两个引用也必须比结构体 `NamedBorrowed` 活得更久
 #[derive(Debug)]
-struct NamedBorrowed {
-    x: &i32,
-    y: &i32,
+struct NamedBorrowed<'b> {
+    x: &'b i32,
+    y: &'b i32,
 }
 #[derive(Debug)]
-enum Either {
+enum Either<'c> {
     Num(i32),
-    Ref(&i32),
+    Ref(&'c i32),
 }
 fn method_6() {
     let x = 18;
@@ -110,8 +119,8 @@ fn method_6() {
     println!("x is borrowed in {:?}", reference);
     println!("y is *not* borrowed in {:?}", number);
 }
-/* 让代码工作 */
 
+/* 让代码工作 */
 #[derive(Debug)]
 struct NoCopyType {}
 #[derive(Debug)]
@@ -131,9 +140,8 @@ fn method_7() {
             a: &var_a,
             b: &var_b,
         };
+        println!("(Success!) {:?}", example);
     }
-
-    println!("(Success!) {:?}", example);
 }
 
 /*#[derive(Debug)]
@@ -147,7 +155,8 @@ struct Example<'a, 'b> {
 }*/
 
 /* 修复函数的签名 */
-fn fix_me(foo: &Example) -> &NoCopyType {
+// fn fix_me<'a:'b, 'b>(foo: &'a Example) -> &'b NoCopyType {
+fn fix_me<'b>(foo: &Example<'_, 'b>) -> &'b NoCopyType {
     foo.b
 }
 fn method_8() {
@@ -158,10 +167,10 @@ fn method_8() {
 }
 
 /* 添加合适的生命周期让下面代码工作 */
-struct ImportantExcerpt {
-    part: &str,
+struct ImportantExcerpt<'a> {
+    part: &'a str,
 }
-impl ImportantExcerpt {
+impl<'a> ImportantExcerpt<'a> {
     fn level(&'a self) -> i32 {
         3
     }
@@ -169,13 +178,13 @@ impl ImportantExcerpt {
 fn method_9() {}
 
 /* 移除所有可以消除的生命周期标注 */
-fn nput<'a>(x: &'a i32) {
+fn nput(x: &i32) {
     println!("`annotated_input`: {}", x);
 }
-fn pass<'a>(x: &'a i32) -> &'a i32 {
+fn pass(x: &i32) -> &i32 {
     x
 }
-fn longest<'a, 'b>(x: &'a str, y: &'b str) -> &'a str {
+fn longest10<'a>(x: &'a str, y: &str) -> &'a str {
     x
 }
 struct Owner(i32);
@@ -191,7 +200,7 @@ struct Person<'a> {
     age: u8,
     name: &'a str,
 }
-enum Either<'a> {
+enum Either10<'a> {
     Num(i32),
     Ref(&'a i32),
 }
