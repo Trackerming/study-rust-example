@@ -1,23 +1,27 @@
+use std::error::Error;
 // 填空并修复错误
 use std::num::ParseIntError;
-fn multiply(n1_str: &str, n2_str: &str) -> __ {
+fn multiply(n1_str: &str, n2_str: &str) -> Result<i32> {
     let n1 = n1_str.parse::<i32>();
     let n2 = n2_str.parse::<i32>();
     Ok(n1.unwrap() * n2.unwrap())
 }
 fn method_1() {
-    let result = multiply("10", "2");
-    assert_eq!(result, __);
+    let result = multiply("10", "2").unwrap();
+    assert_eq!(result, 20);
 
-    let result = multiply("t", "2");
-    assert_eq!(result.__, 8);
+    let result = multiply("4", "2");
+    assert_eq!(result.unwrap(), 8);
 
     println!("Success!")
 }
 
 // 使用 `?` 来实现 multiply
 // 不要使用 unwrap !
-fn multiply_for_2(n1_str: &str, n2_str: &str) -> __ {
+fn multiply_for_2(n1_str: &str, n2_str: &str) -> std::result::Result<i32, ParseIntError> {
+    let n1 = n1_str.parse::<i32>()?;
+    let n2 = n2_str.parse::<i32>()?;
+    Ok(n1 * n2)
 }
 fn method_2() {
     assert_eq!(multiply_for_2("3", "4").unwrap(), 12);
@@ -25,8 +29,8 @@ fn method_2() {
 }
 
 use std::fs::File;
-use std::io::{self, Read};
-fn read_file1() -> Result<String, io::Error> {
+use std::io::{self, Read, Result};
+fn read_file1() -> std::result::Result<String, io::Error> {
     let f = File::open("hello.txt");
     let mut f = match f {
         Ok(file) => file,
@@ -35,27 +39,30 @@ fn read_file1() -> Result<String, io::Error> {
 
     let mut s = String::new();
     match f.read_to_string(&mut s) {
-        Ok(_) => Ok(s),
-        Err(e) => Err(e),
+        Ok(_) => return Ok(s),
+        Err(e) => return Err(e),
     }
 }
 // 填空
 // 不要修改其它代码
-fn read_file2() -> Result<String, io::Error> {
+fn read_file2() -> std::result::Result<String, io::Error> {
     let mut s = String::new();
 
-    __;
+    s = read_file1()?;
 
     Ok(s)
 }
 fn method_3() {
-    assert_eq!(read_file1().unwrap_err().to_string(), read_file2().unwrap_err().to_string());
+    assert_eq!(
+        read_file1().unwrap_err().to_string(),
+        read_file2().unwrap_err().to_string()
+    );
     println!("Success!")
 }
 
 // 使用两种方式填空: map, and then
-fn add_two(n_str: &str) -> Result<i32, ParseIntError> {
-    n_str.parse::<i32>().__
+fn add_two(n_str: &str) -> std::result::Result<i32, ParseIntError> {
+    n_str.parse::<i32>().and_then(|x| Ok(x + 2))
 }
 fn method_4() {
     assert_eq!(add_two("4").unwrap(), 6);
@@ -65,27 +72,26 @@ fn method_4() {
 
 // 使用 Result 重写后，我们使用模式匹配的方式来处理，而无需使用 `unwrap`
 // 但是这种写法实在过于啰嗦..
-fn multiply_for_5(n1_str: &str, n2_str: &str) -> Result<i32, ParseIntError> {
+fn multiply_for_5(n1_str: &str, n2_str: &str) -> std::result::Result<i32, ParseIntError> {
     match n1_str.parse::<i32>() {
-        Ok(n1)  => {
-            match n2_str.parse::<i32>() {
-                Ok(n2)  => {
-                    Ok(n1 * n2)
-                },
-                Err(e) => Err(e),
-            }
+        Ok(n1) => match n2_str.parse::<i32>() {
+            Ok(n2) => Ok(n1 * n2),
+            Err(e) => Err(e),
         },
         Err(e) => Err(e),
     }
 }
 // 重写上面的 `multiply` ，让它尽量简介
 // 提示：使用 `and_then` 和 `map`
-fn multiply1_for_5(n1_str: &str, n2_str: &str) -> Result<i32, ParseIntError> {
+fn multiply1_for_5(n1_str: &str, n2_str: &str) -> std::result::Result<i32, ParseIntError> {
     // 实现...
+    n1_str
+        .parse::<i32>()
+        .and_then(|n1| Ok(n1 * n2_str.parse::<i32>()?))
 }
-fn print5(result: Result<i32, ParseIntError>) {
+fn print5(result: std::result::Result<i32, ParseIntError>) {
     match result {
-        Ok(n)  => println!("n is {}", n),
+        Ok(n) => println!("n is {}", n),
         Err(e) => println!("Error: {}", e),
     }
 }
@@ -101,18 +107,20 @@ fn method_5() {
 }
 
 // 填空
-type __;
+type Res<T> = std::result::Result<T, ParseIntError>;
 // 使用上面的别名来引用原来的 `Result` 类型
 fn multiply_for_6(first_number_str: &str, second_number_str: &str) -> Res<i32> {
     first_number_str.parse::<i32>().and_then(|first_number| {
-        second_number_str.parse::<i32>().map(|second_number| first_number * second_number)
+        second_number_str
+            .parse::<i32>()
+            .map(|second_number| first_number * second_number)
     })
 }
 
 // 同样, 这里也使用了类型别名来简化代码
 fn print6(result: Res<i32>) {
     match result {
-        Ok(n)  => println!("n is {}", n),
+        Ok(n) => println!("n is {}", n),
         Err(e) => println!("Error: {}", e),
     }
 }
@@ -124,10 +132,17 @@ fn method_6() {
     println!("Success!")
 }
 
-
 pub fn practice() {
     println!("ErrorResult Result practice method1:");
     method_1();
     println!("ErrorResult Result practice method2:");
     method_2();
+    println!("ErrorResult Result practice method3:");
+    method_3();
+    println!("ErrorResult Result practice method4:");
+    method_4();
+    println!("ErrorResult Result practice method5:");
+    method_5();
+    println!("ErrorResult Result practice method6:");
+    method_6();
 }
