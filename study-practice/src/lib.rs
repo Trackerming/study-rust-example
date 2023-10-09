@@ -3,6 +3,7 @@ pub mod borrow_reference;
 pub mod collection;
 pub mod enum_practice;
 pub mod generic;
+pub mod lifetime;
 pub mod loop_practice;
 pub mod match_all_practice;
 pub mod match_practice;

@@ -21,4 +21,5 @@ fn main() {
     study_practice::traits::advance_trait::practice();
     study_practice::collection::vec_practice::practice();
     study_practice::collection::hash_map_practice::practice();
+    study_practice::lifetime::practice();
 }
