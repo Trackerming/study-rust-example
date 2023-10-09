@@ -23,4 +23,5 @@ fn main() {
     study_practice::collection::hash_map_practice::practice();
     study_practice::lifetime::practice();
     study_practice::error_result::panic::practice();
+    study_practice::error_result::result_handle::practice();
 }
