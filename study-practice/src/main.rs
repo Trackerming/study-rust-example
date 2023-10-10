@@ -24,4 +24,5 @@ fn main() {
     study_practice::lifetime::practice();
     study_practice::error_result::panic::practice();
     study_practice::error_result::result_handle::practice();
+    study_practice::advance_rust::lifetime::practice();
 }

@@ -1,3 +1,4 @@
+pub mod advance_rust;
 pub mod array_practice;
 pub mod borrow_reference;
 pub mod collection;
@@ -15,4 +16,3 @@ pub mod traits;
 pub mod tuple;
 /// 练习的来源 https://zh.practice.rs/
 pub mod var_ownership;
-pub mod advance_rust;
