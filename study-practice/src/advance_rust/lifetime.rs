@@ -126,6 +126,25 @@ fn print_g(t: &'static String) {
     println!("{}", t);
 }
 
+use std::{slice::from_raw_parts, str::from_utf8_unchecked};
+fn example() {
+    let mem_info = get_memory_location();
+    let str = get_str_at_location(mem_info.0, mem_info.1);
+    println!(
+        "The {} bytes at 0x{:X} stored: {}",
+        mem_info.1, mem_info.0, str
+    );
+}
+fn get_memory_location() -> (usize, usize) {
+    let string = "hello world!";
+    let pointer = string.as_ptr() as usize;
+    let length = string.len();
+    (pointer, length)
+}
+fn get_str_at_location(pointer: usize, length: usize) -> &'static str {
+    unsafe { from_utf8_unchecked(from_raw_parts(pointer as *const u8, length)) }
+}
+
 pub fn practice() {
     println!("Advanced Rust Lifttime staticp practice method1:");
     method_1();
@@ -139,4 +158,6 @@ pub fn practice() {
     method_5();
     println!("Advanced Rust Lifttime staticp practice method6:");
     method_6();
+    println!("Advanced Rust Lifttime get string pointer example:");
+    example();
 }
