@@ -5,6 +5,7 @@ members = [
     "hello_macro_derive",
     "web-server",
     "study-practice",
+    "crypto"
 ]
 
 [workspace.package]
