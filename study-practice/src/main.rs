@@ -27,4 +27,5 @@ fn main() {
     study_practice::advance_rust::lifetime::practice();
     study_practice::advance_rust::clousure::practice();
     study_practice::advance_rust::iterator::practice();
+    study_practice::advance_rust::type_deep::practice();
 }
