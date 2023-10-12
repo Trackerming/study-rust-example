@@ -1,3 +1,4 @@
+#![allow(overflowing_literals)]
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -76,10 +77,10 @@ fn unsafe_func_pointer_example() {
 // 不要移除任何代码
 fn method_1() {
     let decimal = 97.123_f32;
-    let integer: __ = decimal as u8;
-    let c1: char = decimal as char;
+    let integer: u8 = decimal as u8;
+    let c1: char = decimal as u8 as char;
     let c2 = integer as char;
-    assert_eq!(integer, 'b' as u8);
+    assert_eq!(integer, 'b' as u8 - 1);
     println!("Success!")
 }
 
@@ -95,20 +96,18 @@ fn method_2() {
 }
 
 fn method_3() {
-    assert_eq!(1000 as u16, __);
+    assert_eq!(1000 as u16, 1000);
 
-    assert_eq!(1000 as u8, __);
+    assert_eq!(1000 as u8, 232);
 
     // 事实上，之前说的规则对于正整数而言，就是如下的取模
     println!("1000 mod 256 is : {}", 1000 % 256);
 
-    assert_eq!(-1_i8 as u8, __);
-
+    assert_eq!(-1_i8 as u8, 255);
 
     // 从 Rust 1.45 开始，当浮点数超出目标整数的范围时，转化会直接取正整数取值范围的最大或最小值
-    assert_eq!(300.1_f32 as u8, __);
-    assert_eq!(-100.1_f32 as u8, __);
-
+    assert_eq!(300.1_f32 as u8, 255);
+    assert_eq!(-100.1_f32 as u8, 0);
 
     // 上面的浮点数转换有一点性能损耗，如果大家对于某段代码有极致的性能要求，
     // 可以考虑下面的方法，但是这些方法的结果可能会溢出并且返回一些无意义的值
@@ -127,42 +126,43 @@ fn method_3() {
 fn method_4() {
     let mut values: [i32; 2] = [1, 2];
     let p1: *mut i32 = values.as_mut_ptr();
-    let first_address: usize = p1 __;
+    let first_address: usize = p1 as usize;
     let second_address = first_address + 4; // 4 == std::mem::size_of::<i32>()
-    let p2: *mut i32 = second_address __; // p2 指向 values 数组中的第二个元素
+    let p2: *mut i32 = second_address as *mut i32; // p2 指向 values 数组中的第二个元素
     unsafe {
         // 将第二个元素加 1
-        __
+        *p2 += 1;
     }
     assert_eq!(values[1], 3);
     println!("Success!")
 }
 
+// need caculate
 fn method_5() {
-    let arr :[u64; 13] = [0; 13];
+    let arr: [u64; 13] = [0; 13];
     assert_eq!(std::mem::size_of_val(&arr), 8 * 13);
     let a: *const [u64] = &arr;
     let b = a as *const [u8];
-    unsafe {
-        assert_eq!(std::mem::size_of_val(&*b), __)
-    }
+    unsafe { assert_eq!(std::mem::size_of_val(&*b), 13) }
 }
 
 /// try_info
 fn method_6() {
     // impl From<bool> for i32
-    let i1:i32 = false.into();
-    let i2:i32 = i32::from(false);
+    let i1: i32 = false.into();
+    let i2: i32 = i32::from(false);
     assert_eq!(i1, i2);
     assert_eq!(i1, 0);
 
     // 使用两种方式修复错误
     // 1. 哪个类型实现 From 特征 : impl From<char> for ? , 你可以查看一下之前提到的文档，来找到合适的类型
     // 2. 上一章节中介绍过的某个关键字
-    let i3: i32 = 'a'.into();
+    let i3: u32 = 'a'.into();
+    let i4: i32 = 'a' as i32;
 
     // 使用两种方法来解决错误
-    let s: String = 'a' as String;
+    let s: String = 'a'.into();
+    // String::from('a');
 
     println!("Success!")
 }
@@ -175,12 +175,15 @@ struct Number {
 }
 impl From<i32> for Number {
     // 实现 `from` 方法
+    fn from(item: i32) -> Self {
+        Number { value: item }
+    }
 }
 // 填空
 fn method_7() {
-    let num = __(30);
+    let num = Number::from(30);
     assert_eq!(num.value, 30);
-    let num: Number = __;
+    let num: Number = (30 as i32).into();
     assert_eq!(num.value, 30);
     println!("Success!")
 }
@@ -194,9 +197,15 @@ enum CliError {
 }
 impl From<io::Error> for CliError {
     // 实现 from 方法
+    fn from(err: io::Error) -> Self {
+        CliError::IoError(err)
+    }
 }
 impl From<num::ParseIntError> for CliError {
     // 实现 from 方法
+    fn from(err: num::ParseIntError) -> Self {
+        CliError::ParseError(err)
+    }
 }
 fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
     // ? 自动将 io::Error 转换成 CliError
@@ -216,14 +225,17 @@ fn method_9() {
 
     // Into 特征拥有一个方法`into`,
     // 因此 TryInto 有一个方法是 ?
-    let n: u8 = match n.__() {
+    let n: u8 = match n.try_into() {
         Ok(n) => n,
         Err(e) => {
-            println!("there is an error when converting: {:?}, but we catch it", e.to_string());
+            println!(
+                "there is an error when converting: {:?}, but we catch it",
+                e.to_string()
+            );
             0
         }
     };
-    assert_eq!(n, __);
+    assert_eq!(n, 0);
 
     println!("Success!")
 }
@@ -247,25 +259,29 @@ fn method_10() {
 
     // 填空
     let result: Result<EvenNum, ()> = 8i32.try_into();
-    assert_eq!(result, __);
+    assert_eq!(result, Ok(EvenNum(8)));
     let result: Result<EvenNum, ()> = 5i32.try_into();
-    assert_eq!(result, __);
+    assert_eq!(result, Err(()));
 
     println!("Success!")
 }
 
+use std::fmt;
 struct Point {
     x: i32,
     y: i32,
 }
 impl fmt::Display for Point {
     // 实现 fmt 方法
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "The point is ({}, {})", self.x, self.y)
+    }
 }
 fn method_11() {
     let origin = Point { x: 0, y: 0 };
     // 填空
-    assert_eq!(origin.__, "The point is (0, 0)");
-    assert_eq!(format!(__), "The point is (0, 0)");
+    assert_eq!(origin.to_string(), "The point is (0, 0)");
+    assert_eq!(format!("{}", origin), "The point is (0, 0)");
 
     println!("Success!")
 }
@@ -273,9 +289,9 @@ fn method_11() {
 // 为了使用 `from_str` 方法, 你需要引入该特征到当前作用域中
 use std::str::FromStr;
 fn method_12() {
-    let parsed: i32 = "5".__.unwrap();
-    let turbo_parsed = "10".__.unwrap();
-    let from_str = __.unwrap();
+    let parsed: i32 = "5".parse().unwrap();
+    let turbo_parsed = "10".parse::<i32>().unwrap();
+    let from_str = i32::from_str("20").unwrap();
     let sum = parsed + turbo_parsed + from_str;
     assert_eq!(sum, 35);
 
@@ -284,33 +300,37 @@ fn method_12() {
 
 use std::num::ParseIntError;
 #[derive(Debug, PartialEq)]
-struct Point {
+struct Point13 {
     x: i32,
-    y: i32
+    y: i32,
 }
-impl FromStr for Point {
+impl FromStr for Point13 {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let coords: Vec<&str> = s.trim_matches(|p| p == '(' || p == ')' )
-                                 .split(',')
-                                 .collect();
+        let coords: Vec<&str> = s
+            .trim_matches(|p| p == '(' || p == ')')
+            .split(',')
+            .collect();
 
         let x_fromstr = coords[0].parse::<i32>()?;
         let y_fromstr = coords[1].parse::<i32>()?;
 
-        Ok(Point { x: x_fromstr, y: y_fromstr })
+        Ok(Point13 {
+            x: x_fromstr,
+            y: y_fromstr,
+        })
     }
 }
 fn method_13() {
     // 使用两种方式填空
     // 不要修改其它地方的代码
-    let p = __;
-    assert_eq!(p.unwrap(), Point{ x: 3, y: 4} );
+    let p = "(3,4)".parse::<Point13>();
+    // let p1 = Point::from_str("(3, 4)");
+    assert_eq!(p.unwrap(), Point13 { x: 3, y: 4 });
 
     println!("Success!")
 }
-
 
 pub fn practice() {
     mem_convert();
