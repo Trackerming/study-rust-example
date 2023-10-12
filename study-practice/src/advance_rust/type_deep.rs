@@ -71,9 +71,276 @@ fn unsafe_func_pointer_example() {
     println!("{result}");
 }
 
+/// as篇
+// 修复错误，填空
+// 不要移除任何代码
+fn method_1() {
+    let decimal = 97.123_f32;
+    let integer: __ = decimal as u8;
+    let c1: char = decimal as char;
+    let c2 = integer as char;
+    assert_eq!(integer, 'b' as u8);
+    println!("Success!")
+}
+
+fn method_2() {
+    assert_eq!(u8::MAX, 255);
+    // 如上所示，u8 类型允许的最大值是 255.
+    // 因此以下代码会报溢出的错误： literal out of range for `u8`.
+    // **请仔细查看相应的编译错误，从中寻找到解决的办法**
+    // **不要修改 main 中的任何代码**
+    let v = 1000 as u8;
+
+    println!("Success!")
+}
+
+fn method_3() {
+    assert_eq!(1000 as u16, __);
+
+    assert_eq!(1000 as u8, __);
+
+    // 事实上，之前说的规则对于正整数而言，就是如下的取模
+    println!("1000 mod 256 is : {}", 1000 % 256);
+
+    assert_eq!(-1_i8 as u8, __);
+
+
+    // 从 Rust 1.45 开始，当浮点数超出目标整数的范围时，转化会直接取正整数取值范围的最大或最小值
+    assert_eq!(300.1_f32 as u8, __);
+    assert_eq!(-100.1_f32 as u8, __);
+
+
+    // 上面的浮点数转换有一点性能损耗，如果大家对于某段代码有极致的性能要求，
+    // 可以考虑下面的方法，但是这些方法的结果可能会溢出并且返回一些无意义的值
+    // 总之，请小心使用
+    unsafe {
+        // 300.0 is 44
+        println!("300.0 is {}", 300.0_f32.to_int_unchecked::<u8>());
+        // -100.0 as u8 is 156
+        println!("-100.0 as u8 is {}", (-100.0_f32).to_int_unchecked::<u8>());
+        // nan as u8 is 0
+        println!("nan as u8 is {}", f32::NAN.to_int_unchecked::<u8>());
+    }
+}
+
+// 填空
+fn method_4() {
+    let mut values: [i32; 2] = [1, 2];
+    let p1: *mut i32 = values.as_mut_ptr();
+    let first_address: usize = p1 __;
+    let second_address = first_address + 4; // 4 == std::mem::size_of::<i32>()
+    let p2: *mut i32 = second_address __; // p2 指向 values 数组中的第二个元素
+    unsafe {
+        // 将第二个元素加 1
+        __
+    }
+    assert_eq!(values[1], 3);
+    println!("Success!")
+}
+
+fn method_5() {
+    let arr :[u64; 13] = [0; 13];
+    assert_eq!(std::mem::size_of_val(&arr), 8 * 13);
+    let a: *const [u64] = &arr;
+    let b = a as *const [u8];
+    unsafe {
+        assert_eq!(std::mem::size_of_val(&*b), __)
+    }
+}
+
+/// try_info
+fn method_6() {
+    // impl From<bool> for i32
+    let i1:i32 = false.into();
+    let i2:i32 = i32::from(false);
+    assert_eq!(i1, i2);
+    assert_eq!(i1, 0);
+
+    // 使用两种方式修复错误
+    // 1. 哪个类型实现 From 特征 : impl From<char> for ? , 你可以查看一下之前提到的文档，来找到合适的类型
+    // 2. 上一章节中介绍过的某个关键字
+    let i3: i32 = 'a'.into();
+
+    // 使用两种方法来解决错误
+    let s: String = 'a' as String;
+
+    println!("Success!")
+}
+
+// From 被包含在 `std::prelude` 中，因此我们没必要手动将其引入到当前作用域来
+// use std::convert::From;
+#[derive(Debug)]
+struct Number {
+    value: i32,
+}
+impl From<i32> for Number {
+    // 实现 `from` 方法
+}
+// 填空
+fn method_7() {
+    let num = __(30);
+    assert_eq!(num.value, 30);
+    let num: Number = __;
+    assert_eq!(num.value, 30);
+    println!("Success!")
+}
+
+use std::fs;
+use std::io;
+use std::num;
+enum CliError {
+    IoError(io::Error),
+    ParseError(num::ParseIntError),
+}
+impl From<io::Error> for CliError {
+    // 实现 from 方法
+}
+impl From<num::ParseIntError> for CliError {
+    // 实现 from 方法
+}
+fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
+    // ? 自动将 io::Error 转换成 CliError
+    let contents = fs::read_to_string(&file_name)?;
+    // num::ParseIntError -> CliError
+    let num: i32 = contents.trim().parse()?;
+    Ok(num)
+}
+fn method_8() {
+    println!("Success!")
+}
+
+// TryFrom 和 TryInto 也被包含在 `std::prelude` 中, 因此以下引入是没必要的
+// use std::convert::TryInto;
+fn method_9() {
+    let n: i16 = 256;
+
+    // Into 特征拥有一个方法`into`,
+    // 因此 TryInto 有一个方法是 ?
+    let n: u8 = match n.__() {
+        Ok(n) => n,
+        Err(e) => {
+            println!("there is an error when converting: {:?}, but we catch it", e.to_string());
+            0
+        }
+    };
+    assert_eq!(n, __);
+
+    println!("Success!")
+}
+
+#[derive(Debug, PartialEq)]
+struct EvenNum(i32);
+impl TryFrom<i32> for EvenNum {
+    type Error = ();
+    // 实现 `try_from`
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value % 2 == 0 {
+            Ok(EvenNum(value))
+        } else {
+            Err(())
+        }
+    }
+}
+fn method_10() {
+    assert_eq!(EvenNum::try_from(8), Ok(EvenNum(8)));
+    assert_eq!(EvenNum::try_from(5), Err(()));
+
+    // 填空
+    let result: Result<EvenNum, ()> = 8i32.try_into();
+    assert_eq!(result, __);
+    let result: Result<EvenNum, ()> = 5i32.try_into();
+    assert_eq!(result, __);
+
+    println!("Success!")
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+impl fmt::Display for Point {
+    // 实现 fmt 方法
+}
+fn method_11() {
+    let origin = Point { x: 0, y: 0 };
+    // 填空
+    assert_eq!(origin.__, "The point is (0, 0)");
+    assert_eq!(format!(__), "The point is (0, 0)");
+
+    println!("Success!")
+}
+
+// 为了使用 `from_str` 方法, 你需要引入该特征到当前作用域中
+use std::str::FromStr;
+fn method_12() {
+    let parsed: i32 = "5".__.unwrap();
+    let turbo_parsed = "10".__.unwrap();
+    let from_str = __.unwrap();
+    let sum = parsed + turbo_parsed + from_str;
+    assert_eq!(sum, 35);
+
+    println!("Success!")
+}
+
+use std::num::ParseIntError;
+#[derive(Debug, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32
+}
+impl FromStr for Point {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let coords: Vec<&str> = s.trim_matches(|p| p == '(' || p == ')' )
+                                 .split(',')
+                                 .collect();
+
+        let x_fromstr = coords[0].parse::<i32>()?;
+        let y_fromstr = coords[1].parse::<i32>()?;
+
+        Ok(Point { x: x_fromstr, y: y_fromstr })
+    }
+}
+fn method_13() {
+    // 使用两种方式填空
+    // 不要修改其它地方的代码
+    let p = __;
+    assert_eq!(p.unwrap(), Point{ x: 3, y: 4} );
+
+    println!("Success!")
+}
+
+
 pub fn practice() {
     mem_convert();
     try_into_example();
     example_find_func_call();
     unsafe_func_pointer_example();
+    println!("Advanced Rust deep types staticp practice method1:");
+    method_1();
+    println!("Advanced Rust deep types staticp practice method2:");
+    method_2();
+    println!("Advanced Rust deep types staticp practice method3:");
+    method_3();
+    println!("Advanced Rust deep types staticp practice method4:");
+    method_4();
+    println!("Advanced Rust deep types staticp practice method5:");
+    method_5();
+    println!("Advanced Rust deep types staticp practice method6:");
+    method_6();
+    println!("Advanced Rust deep types staticp practice method7:");
+    method_7();
+    println!("Advanced Rust deep types staticp practice method8:");
+    method_8();
+    println!("Advanced Rust deep types staticp practice method9:");
+    method_9();
+    println!("Advanced Rust deep types staticp practice method10:");
+    method_10();
+    println!("Advanced Rust deep types staticp practice method11:");
+    method_11();
+    println!("Advanced Rust deep types staticp practice method12:");
+    method_12();
+    println!("Advanced Rust deep types staticp practice method13:");
+    method_13();
 }
