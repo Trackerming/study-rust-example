@@ -30,4 +30,5 @@ fn main() {
     study_practice::advance_rust::type_deep::practice();
     study_practice::advance_rust::new_type::practice();
     study_practice::advance_rust::smart_pointer::practice();
+    study_practice::advance_rust::pointer_ref_loop::practice();
 }
