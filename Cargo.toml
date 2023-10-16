@@ -5,7 +5,8 @@ members = [
     "hello_macro_derive",
     "web-server",
     "study-practice",
-    "crypto"
+    "crypto",
+    "vsock-node"
 ]
 
 [workspace.package]
