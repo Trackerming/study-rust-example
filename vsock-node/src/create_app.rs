@@ -33,7 +33,7 @@ macro_rules! create_app {
                         Arg::new("port")
                             .long("port")
                             .help("port")
-                            .takes_value("port")
+                            .takes_value(true)
                             .required(true),
                     ),
             )

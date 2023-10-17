@@ -56,7 +56,7 @@ pub struct TcpArgs<'a> {
 }
 
 impl<'a> TcpArgs<'a> {
-    pub fn new_with(args: &ArgMatches) -> Result<Self, String> {
+    pub fn new_with(args: &'a ArgMatches) -> Result<Self, String> {
         Ok(TcpArgs {
             host: parse_host(args)?,
             port: parse_port(args, "tcpPort")? as u16,

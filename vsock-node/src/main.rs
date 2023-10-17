@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{App, AppSettings, Arg, Command};
 use vsock_node::command_parser::{ClientArgs, ServerArgs, TcpArgs};
 use vsock_node::{client, create_app, server, tcp_client, tcp_server};
 
