@@ -2,78 +2,31 @@ pub mod command_parser;
 pub mod create_app;
 pub mod http_send_recv;
 pub mod proto_helpers;
+pub mod proto_socket;
 
 use command_parser::{ClientArgs, ServerArgs, TcpArgs};
 use core::str::FromStr;
 use nix::libc::listen;
 use nix::sys::socket::{
-    accept, bind, connect, listen as listen_vsock, shutdown, socket, AddressFamily, InetAddr,
-    Shutdown, SockAddr, SockFlag, SockProtocol::Tcp, SockType,
+    accept, bind, listen as listen_vsock, socket, AddressFamily, InetAddr, SockAddr, SockFlag,
+    SockProtocol::Tcp, SockType,
 };
-use nix::unistd::close;
 use proto_helpers::{recv_loop, recv_u64, send_loop, send_u64};
+use proto_socket::{ProtoSocket, ProtoType};
 use std::convert::TryInto;
 use std::ffi::c_int;
+// 显式引入trait到作用域
 use std::net::{IpAddr, SocketAddr};
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::unix::io::AsRawFd;
 use std::string::String;
 
 const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 const BUF_MAX_LEN: usize = 8192;
 const BACKLOG: usize = 128;
-const MAX_CONNECTION_ATTEMPTS: usize = 5;
-
-struct VsockSocket {
-    socket_fd: RawFd,
-}
-
-impl VsockSocket {
-    fn new(socket_fd: RawFd) -> Self {
-        VsockSocket { socket_fd }
-    }
-}
-
-// 实现drop特性，在结构体超出生命周期时候实现资源的关闭
-impl Drop for VsockSocket {
-    fn drop(&mut self) {
-        shutdown(self.socket_fd, Shutdown::Both)
-            .unwrap_or_else(|e| eprintln!("Failed to shut socket down: {:?}", e));
-        close(self.socket_fd).unwrap_or_else(|e| eprintln!("Failed to close socket: {:?}", e));
-    }
-}
-
-impl AsRawFd for VsockSocket {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket_fd
-    }
-}
-
-fn vsock_connect(cid: u32, port: u32) -> Result<VsockSocket, String> {
-    // target os为android 和 linux
-    let socket_addr = SockAddr::new_vsock(cid, port);
-    let mut err_msg = String::new();
-    for i in 0..MAX_CONNECTION_ATTEMPTS {
-        let vsocket = VsockSocket::new(
-            socket(
-                AddressFamily::Vsock,
-                SockType::Stream,
-                SockFlag::empty(),
-                None,
-            )
-            .map_err(|err| format!("Failed to create the socket: {:?}", err))?,
-        );
-        match connect(vsocket.as_raw_fd(), &socket_addr) {
-            Ok(_) => return Ok(vsocket),
-            Err(e) => err_msg = format!("Failed to connect: {}", e),
-        }
-        // 重连的时候显式降频
-        std::thread::sleep(std::time::Duration::from_secs(1 << i));
-    }
-    Err(err_msg)
-}
 
 pub fn client(args: ClientArgs) -> Result<(), String> {
-    let vsocket = vsock_connect(args.cid, args.port)?;
+    let proto_type = ProtoType::Vsock(args.cid, args.port);
+    let vsocket = ProtoSocket::connect(proto_type)?;
     let fd = vsocket.as_raw_fd();
     // 示例发送数据
     let data = "hello server, this is client".to_string();
@@ -140,59 +93,9 @@ pub fn tcp_server(args: TcpArgs) -> Result<(), String> {
     }
 }
 
-struct TcpSocket {
-    socket_fd: RawFd,
-}
-
-impl TcpSocket {
-    fn new(socket_fd: RawFd) -> Self {
-        TcpSocket { socket_fd }
-    }
-}
-
-impl Drop for TcpSocket {
-    fn drop(&mut self) {
-        shutdown(self.socket_fd, Shutdown::Both)
-            .unwrap_or_else(|e| eprintln!("Failed to shut tcp socket down: {:?}", e));
-        close(self.socket_fd).unwrap_or_else(|e| eprintln!("Failed to close tcp socket: {:?}", e));
-    }
-}
-
-impl AsRawFd for TcpSocket {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket_fd
-    }
-}
-
-fn tcp_connect(host: &str, port: u16) -> Result<TcpSocket, String> {
-    let addr = SocketAddr::new(
-        IpAddr::from_str(host).expect("ip address to Ipv4Addr failed."),
-        port,
-    );
-    let socket_addr = SockAddr::Inet(InetAddr::from_std(&addr));
-    let mut err_msg = String::new();
-    for i in 0..MAX_CONNECTION_ATTEMPTS {
-        let tcp_socket = TcpSocket::new(
-            socket(
-                AddressFamily::Inet,
-                SockType::Stream,
-                SockFlag::empty(),
-                Tcp,
-            )
-            .map_err(|err| format!("Failed to create the tcp socket: {:?}", err))?,
-        );
-        match connect(tcp_socket.as_raw_fd(), &socket_addr) {
-            Ok(_) => return Ok(tcp_socket),
-            Err(e) => err_msg = format!("Failed to connect: {}", e),
-        }
-        // 重连的时候显式降频
-        std::thread::sleep(std::time::Duration::from_secs(1 << i));
-    }
-    Err(err_msg)
-}
-
 pub fn tcp_client(args: TcpArgs) -> Result<(), String> {
-    let tcp_socket = tcp_connect(args.host, args.port)?;
+    let proto_type = ProtoType::Tcp(args.host, args.port);
+    let tcp_socket = ProtoSocket::connect(proto_type)?;
     let fd = tcp_socket.as_raw_fd();
     // 示例发送数据
     let data = "hello server, this is tcp client".to_string();
