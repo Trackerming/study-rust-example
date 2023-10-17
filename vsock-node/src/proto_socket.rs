@@ -22,14 +22,14 @@ pub struct ProtoSocket<'a> {
 }
 
 impl<'a> ProtoSocket<'a> {
-    pub fn new(proto_type: ProtoType, socket_fd: RawFd) -> ProtoSocket {
+    pub fn new(proto_type: ProtoType<'a>, socket_fd: RawFd) -> ProtoSocket {
         Self {
             proto_type,
             socket_fd,
         }
     }
 
-    pub fn connect(proto_type: ProtoType) -> Result<ProtoSocket, String> {
+    pub fn connect(proto_type: ProtoType<'a>) -> Result<ProtoSocket, String> {
         let (addr, raw_fd) = match proto_type {
             ProtoType::Vsock(cid, port) => {
                 // target os为android 和 linux
