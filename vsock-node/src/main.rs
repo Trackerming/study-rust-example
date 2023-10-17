@@ -1,3 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
+use vsock_node::client;
+
+fn main() {}
