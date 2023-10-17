@@ -1,4 +1,5 @@
 pub mod command_parser;
+pub mod create_app;
 pub mod http_send_recv;
 pub mod proto_helpers;
 
@@ -108,7 +109,7 @@ pub fn server(args: ServerArgs) -> Result<(), String> {
     }
 }
 
-pub fn http_server(args: TcpArgs) -> Result<(), String> {
+pub fn tcp_server(args: TcpArgs) -> Result<(), String> {
     let socket_fd = socket(
         AddressFamily::Inet,
         SockType::Stream,
@@ -188,4 +189,16 @@ fn tcp_connect(host: &str, port: u16) -> Result<TcpSocket, String> {
         std::thread::sleep(std::time::Duration::from_secs(1 << i));
     }
     Err(err_msg)
+}
+
+pub fn tcp_client(args: TcpArgs) -> Result<(), String> {
+    let tcp_socket = tcp_connect(args.host, args.port)?;
+    let fd = tcp_socket.as_raw_fd();
+    // 示例发送数据
+    let data = "hello server, this is tcp client".to_string();
+    let buf = data.as_bytes();
+    let len: u64 = buf.len().try_into().map_err(|err| format!("{:?}", err))?;
+    send_u64(fd, len)?;
+    send_loop(fd, buf, len)?;
+    Ok(())
 }
