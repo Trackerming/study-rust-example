@@ -7,7 +7,6 @@ pub mod sender_receiver;
 
 use crate::sender_receiver::SenderReceiver;
 use command_parser::{ClientArgs, ServerArgs, TcpArgs};
-use core::str::FromStr;
 use proto_helpers::{send_loop, send_u64};
 use proto_socket::{ProtoSocket, ProtoType};
 use std::convert::TryInto;
