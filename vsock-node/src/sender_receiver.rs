@@ -1,4 +1,4 @@
-use crate::proto_helpers::{recv_loop, recv_u64};
+use crate::proto_helpers::{recv_loop, recv_u64, send_loop, send_u64};
 use crate::proto_socket::{ProtoSocket, ProtoType};
 use core::str::FromStr;
 use nix::libc::listen;
@@ -9,7 +9,7 @@ use nix::sys::socket::{
 use std::cell::RefCell;
 use std::ffi::c_int;
 use std::net::{IpAddr, SocketAddr};
-use std::os::fd::RawFd;
+use std::os::fd::{AsRawFd, RawFd};
 
 const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 const BACKLOG: usize = 128;
@@ -36,15 +36,20 @@ impl<'a> SenderReceiver<'a> {
 
     fn listen_socket(&self, raw_fd: RawFd) -> Result<(), String> {
         match self.recv_proto_type {
-            ProtoType::Tcp(_, _) => {
-                unsafe {
-                    listen(raw_fd, BACKLOG as c_int);
-                }
-            }
+            ProtoType::Tcp(_, _) => unsafe {
+                listen(raw_fd, BACKLOG as c_int);
+            },
             ProtoType::Vsock(_, _) => {
                 listen_vsock(raw_fd, BACKLOG).map_err(|err| format!("listen failed: {:?}", err))?;
             }
         };
+        Ok(())
+    }
+
+    fn send_data(&self, len: u64) -> Result<(), String> {
+        let fd = self.send_socket.as_raw_fd();
+        send_u64(fd, len)?;
+        send_loop(fd, &*self.buf.borrow(), len)?;
         Ok(())
     }
 
@@ -57,7 +62,7 @@ impl<'a> SenderReceiver<'a> {
                     SockFlag::empty(),
                     None,
                 )
-                    .map_err(|err| format!("server create v-socket failed: {:?}", err))?;
+                .map_err(|err| format!("server create v-socket failed: {:?}", err))?;
                 let socket_addr = SockAddr::new_vsock(cid, port);
                 (socket_fd, socket_addr)
             }
@@ -68,7 +73,7 @@ impl<'a> SenderReceiver<'a> {
                     SockFlag::empty(),
                     Tcp,
                 )
-                    .map_err(|error| format!("sever create tcp socket failed: {:?}", error))?;
+                .map_err(|error| format!("sever create tcp socket failed: {:?}", error))?;
                 let addr = SocketAddr::new(
                     IpAddr::from_str(host).expect("ip address to Ipv4Addr failed."),
                     port,
@@ -84,12 +89,16 @@ impl<'a> SenderReceiver<'a> {
         loop {
             let fd = accept(raw_fd).map_err(|err| format!("server accept failed: {:?}", err))?;
             let len = recv_u64(fd)?;
-            recv_loop(fd, &mut *self.buf.borrow_mut(), len)?;
+            let buf = &mut *self.buf.borrow_mut();
+            recv_loop(fd, buf, len)?;
             println!(
                 "{}",
                 String::from_utf8(self.buf.borrow().to_vec())
                     .map_err(|err| format!("The received bytes are not utf8: {:?}", err))?
             );
+            self.send_data(len)?;
+            // 清空数据
+            buf.iter_mut().for_each(|e| *e = 0u8);
         }
     }
 }
