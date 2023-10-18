@@ -35,14 +35,14 @@ macro_rules! create_app {
                             .help("cid")
                             .takes_value(true)
                             .required(true),
-                    ),
+                    )
                     .arg(
                         Arg::new("port")
                             .long("port")
                             .help("port")
                             .takes_value(true)
                             .required(true),
-                    ),
+                    )
                     .arg(
                         Arg::new("tcpPort")
                             .long("tcpPort")
@@ -92,7 +92,7 @@ macro_rules! create_app {
                             .help("host")
                             .takes_value(true)
                             .required(true),
-                    ),
+                    )
                     .arg(
                         Arg::new("port")
                             .long("port")
