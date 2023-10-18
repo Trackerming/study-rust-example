@@ -43,6 +43,7 @@ impl<'a> SenderReceiver<'a> {
                 listen_vsock(raw_fd, BACKLOG).map_err(|err| format!("listen failed: {:?}", err))?;
             }
         };
+        println!("sender_receiver listen socket finished.");
         Ok(())
     }
 
@@ -50,6 +51,7 @@ impl<'a> SenderReceiver<'a> {
         let fd = self.send_socket.as_raw_fd();
         send_u64(fd, len)?;
         send_loop(fd, &*self.buf.borrow(), len)?;
+        println!("send_data finish.");
         Ok(())
     }
 
@@ -82,6 +84,10 @@ impl<'a> SenderReceiver<'a> {
                 (socket_fd, socket_addr)
             }
         };
+        println!(
+            "listen in raw_fd: {:?}, socket_addr: {:?}",
+            raw_fd, socket_addr
+        );
         // bind 和 listen
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;

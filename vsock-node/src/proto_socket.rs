@@ -30,7 +30,7 @@ impl<'a> ProtoSocket<'a> {
         }
     }
 
-    fn get_addr(proto_type: &'a ProtoType) -> SockAddr {
+    fn get_addr(proto_type: &ProtoType) -> SockAddr {
         match *proto_type {
             ProtoType::Vsock(cid, port) => SockAddr::new_vsock(cid, port),
             ProtoType::Tcp(host, tcp_port) => {
@@ -43,9 +43,9 @@ impl<'a> ProtoSocket<'a> {
         }
     }
 
-    fn get_raw_fd(proto_type: &'a ProtoType) -> Result<RawFd, String> {
+    fn get_raw_fd(proto_type: &ProtoType) -> Result<RawFd, String> {
         let raw_fd = match *proto_type {
-            ProtoType::Vsock(cid, port) => {
+            ProtoType::Vsock(_, _) => {
                 // target os为android 和 linux
                 socket(
                     AddressFamily::Vsock,
@@ -55,7 +55,7 @@ impl<'a> ProtoSocket<'a> {
                 )
                 .map_err(|err| format!("Failed to create the socket: {:?}", err))?
             }
-            ProtoType::Tcp(host, tcp_port) => socket(
+            ProtoType::Tcp(_, _) => socket(
                 AddressFamily::Inet,
                 SockType::Stream,
                 SockFlag::empty(),
