@@ -7,9 +7,9 @@ use nix::sys::socket::{
     SockProtocol::Tcp, SockType,
 };
 use std::cell::RefCell;
-use std::convert::TryInto;
 use std::ffi::c_int;
 use std::net::{IpAddr, SocketAddr};
+use std::os::fd::RawFd;
 
 const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 const BACKLOG: usize = 128;
@@ -34,8 +34,22 @@ impl<'a> SenderReceiver<'a> {
         }
     }
 
+    fn listen_socket(&self, raw_fd: RawFd) -> Result<(), String> {
+        match self.recv_proto_type {
+            ProtoType::Tcp(_, _) => {
+                unsafe {
+                    listen(raw_fd, BACKLOG as c_int);
+                }
+            }
+            ProtoType::Vsock(_, _) => {
+                listen_vsock(raw_fd, BACKLOG).map_err(|err| format!("listen failed: {:?}", err))?;
+            }
+        };
+        Ok(())
+    }
+
     pub fn listen_sever(&self) -> Result<(), String> {
-        let (raw_fd, socket_addr, listen_fn) = match self.recv_proto_type {
+        let (raw_fd, socket_addr) = match self.recv_proto_type {
             ProtoType::Vsock(cid, port) => {
                 let socket_fd = socket(
                     AddressFamily::Vsock,
@@ -43,10 +57,9 @@ impl<'a> SenderReceiver<'a> {
                     SockFlag::empty(),
                     None,
                 )
-                .map_err(|err| format!("server create v-socket failed: {:?}", err))?;
+                    .map_err(|err| format!("server create v-socket failed: {:?}", err))?;
                 let socket_addr = SockAddr::new_vsock(cid, port);
-                let listen_fn = listen_vsock;
-                (socket_fd, socket_addr, listen_fn)
+                (socket_fd, socket_addr)
             }
             ProtoType::Tcp(host, port) => {
                 let socket_fd = socket(
@@ -55,20 +68,19 @@ impl<'a> SenderReceiver<'a> {
                     SockFlag::empty(),
                     Tcp,
                 )
-                .map_err(|error| format!("sever create tcp socket failed: {:?}", error))?;
+                    .map_err(|error| format!("sever create tcp socket failed: {:?}", error))?;
                 let addr = SocketAddr::new(
                     IpAddr::from_str(host).expect("ip address to Ipv4Addr failed."),
                     port,
                 );
                 let socket_addr = SockAddr::Inet(InetAddr::from_std(&addr));
-                let listen_fn = listen;
-                (socket_fd, socket_addr, listen_fn)
+                (socket_fd, socket_addr)
             }
         };
         // bind 和 listen
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
-        listen_fn(raw_fd, BACKLOG).map_err(|err| format!("listen failed: {:?}", err))?;
-        // 新起一个线程接收数据
+        self.listen_socket(raw_fd)?;
+        // 接收数据
         loop {
             let fd = accept(raw_fd).map_err(|err| format!("server accept failed: {:?}", err))?;
             let len = recv_u64(fd)?;
