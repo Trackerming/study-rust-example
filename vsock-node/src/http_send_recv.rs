@@ -1,4 +1,3 @@
-use crate::BUF_MAX_LEN;
 use core::str::FromStr;
 use std::io::BufReader;
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
@@ -22,7 +21,7 @@ impl HttpReceiver {
     }
 
     fn receive_data(&self) -> Vec<u8> {
-        let mut data = vec![0; BUF_MAX_LEN];
+        let mut data = vec![0];
         for stream in self.listener.incoming() {
             let mut stream = stream.unwrap();
             let buf_reader = BufReader::new(&mut stream);

@@ -11,7 +11,7 @@ use std::string::String;
 const MAX_CONNECTION_ATTEMPTS: usize = 5;
 
 #[derive(Clone)]
-pub enum ProtoType<'a> {
+pub(crate) enum ProtoType<'a> {
     Vsock(u32, u32),
     Tcp(&'a str, u16),
 }

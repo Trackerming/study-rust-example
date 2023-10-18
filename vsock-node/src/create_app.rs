@@ -27,12 +27,33 @@ macro_rules! create_app {
             .setting(AppSettings::ArgRequiredElseHelp)
             .version(env!("CARGO_PKG_VERSION"))
             .subcommand(
-                Command::new("vsock_sever")
-                    .about("Listen on a give port")
+                Command::new("tcp_to_vsock_server")
+                    .about("Listen on a give tcp(host+port) and send by vsock(cid+port)")
+                    .arg(
+                        Arg::new("cid")
+                            .long("cid")
+                            .help("cid")
+                            .takes_value(true)
+                            .required(true),
+                    ),
                     .arg(
                         Arg::new("port")
                             .long("port")
                             .help("port")
+                            .takes_value(true)
+                            .required(true),
+                    ),
+                    .arg(
+                        Arg::new("tcpPort")
+                            .long("tcpPort")
+                            .help("tcpPort")
+                            .takes_value(true)
+                            .required(true),
+                    )
+                    .arg(
+                        Arg::new("host")
+                            .long("host")
+                            .help("host")
                             .takes_value(true)
                             .required(true),
                     ),
@@ -56,8 +77,8 @@ macro_rules! create_app {
                     ),
             )
             .subcommand(
-                Command::new("tcp_server")
-                    .about("listen a given cid and port")
+                Command::new("vsock_to_tcp_server")
+                    .about("listen a given port and send by tcp(host+port)")
                     .arg(
                         Arg::new("tcpPort")
                             .long("tcpPort")
@@ -69,6 +90,13 @@ macro_rules! create_app {
                         Arg::new("host")
                             .long("host")
                             .help("host")
+                            .takes_value(true)
+                            .required(true),
+                    ),
+                    .arg(
+                        Arg::new("port")
+                            .long("port")
+                            .help("port")
                             .takes_value(true)
                             .required(true),
                     ),

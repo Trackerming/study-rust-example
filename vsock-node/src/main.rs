@@ -1,22 +1,24 @@
 use clap::{App, AppSettings, Arg, Command};
 use vsock_node::command_parser::{ClientArgs, ServerArgs, TcpArgs};
-use vsock_node::{client, create_app, server, tcp_client, tcp_server};
+use vsock_node::{client, create_app, server, tcp_client, tcp_server, tcp_to_vsock, vsock_to_tcp};
 
 fn main() {
     let app = create_app!();
     let args = app.get_matches();
     match args.subcommand() {
-        Some(("vsock_sever", args)) => {
+        Some(("vsock_to_tcp_sever", args)) => {
             let server_ags = ServerArgs::new_with(args).unwrap();
-            server(server_ags).unwrap();
+            let tcp_args = TcpArgs::new_with(args).unwrap();
+            vsock_to_tcp(server_ags, tcp_args).unwrap();
         }
         Some(("vsock_client", args)) => {
             let client_ags = ClientArgs::new_with(args).unwrap();
             client(client_ags).unwrap();
         }
-        Some(("tcp_server", args)) => {
-            let tcp_ags = TcpArgs::new_with(args).unwrap();
-            tcp_server(tcp_ags).unwrap();
+        Some(("tcp_to_vsock_server", args)) => {
+            let tcp_args = TcpArgs::new_with(args).unwrap();
+            let client_ags = ClientArgs::new_with(args).unwrap();
+            tcp_to_vsock(tcp_args, client_ags).unwrap();
         }
         Some(("tcp_client", args)) => {
             let tcp_ags = TcpArgs::new_with(args).unwrap();
