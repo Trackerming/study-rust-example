@@ -7,7 +7,9 @@ RUN  yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
 COPY ./run.sh /app/run.sh
 RUN chmod +x /app/run.sh
 COPY ["package*.json","yarn.lock","./"]
-COPY ["./enclave.ts", "/app/"]
+COPY ["./src/enclave.ts", "/app/"]
 COPY ./vsock-node /app/
+RUN npm install -g yarn ts-node
+RUN yarn install
 EXPOSE 8000
 CMD ["/app/run.sh"]
