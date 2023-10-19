@@ -48,6 +48,14 @@ pub fn tcp_to_vsock(args: TcpArgs, client_args: ClientArgs) -> Result<(), String
     sender_receiver.listen_sever(pool)
 }
 
+pub fn tcp_to_tcp(args: TcpArgs, args2: TcpArgs) -> Result<(), String> {
+    let recv_proto_type = ProtoType::Tcp(args.host, args.port);
+    let send_proto_type = ProtoType::Tcp(args2.host, args2.port);
+    let pool = ThreadPool::new(2);
+    let sender_receiver = SenderReceiver::new_with_proto_type(send_proto_type, recv_proto_type);
+    println!("tcp_to_tcp get sender receiver");
+    sender_receiver.listen_sever(pool)
+}
 pub fn tcp_client(args: TcpArgs) -> Result<(), String> {
     let proto_type = ProtoType::Tcp(args.host, args.port);
     let tcp_socket = ProtoSocket::connect(proto_type)?;

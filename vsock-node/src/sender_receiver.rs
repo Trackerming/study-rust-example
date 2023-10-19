@@ -13,7 +13,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::os::fd::{AsRawFd, RawFd};
 use std::rc::Rc;
 use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{mpsc, Arc};
+use std::sync::{mpsc, Arc, Mutex};
 
 const BACKLOG: usize = 128;
 const BUF_MAX_LEN: usize = 8192;
@@ -21,15 +21,18 @@ const BUF_MAX_LEN: usize = 8192;
 pub struct SenderReceiver<'a> {
     send_socket: ProtoSocket<'a>,
     recv_proto_type: ProtoType<'a>,
-    chann: (Arc<Sender<(Vec<u8>, u64)>>, Arc<Receiver<(Vec<u8>, u64)>>),
+    chann: (
+        Arc<Sender<(Vec<u8>, u64)>>,
+        Arc<Mutex<Receiver<(Vec<u8>, u64)>>>,
+    ),
 }
 
-fn send_data(fd: RawFd, rx: Arc<Receiver<(Vec<u8>, u64)>>) {
-    for (received, len) in *rx {
-        send_u64(fd, len).expect("send data len failed");
-        send_loop(fd, &received, len).expect("send data failed.");
-        println!("send_data finish.");
-    }
+fn send_data(fd: RawFd, rx: Arc<Mutex<Receiver<(Vec<u8>, u64)>>>) {
+    let recv = rx.lock().unwrap().recv().expect("rx lock recv failed.");
+    let (received, len) = recv;
+    send_u64(fd, len).expect("send data len failed");
+    send_loop(fd, &received, len).expect("send data failed.");
+    println!("send_data finish.");
 }
 
 fn received_data(raw_fd: RawFd, tx: Arc<Sender<(Vec<u8>, u64)>>) {
@@ -57,7 +60,7 @@ impl<'a> SenderReceiver<'a> {
         SenderReceiver {
             send_socket: ProtoSocket::connect(send_proto_type).expect("send proto type error."),
             recv_proto_type,
-            chann: (Arc::new(tx), Arc::new(rx)),
+            chann: (Arc::new(tx), Arc::new(Mutex::new(rx))),
         }
     }
 
@@ -110,8 +113,8 @@ impl<'a> SenderReceiver<'a> {
         // bind 和 listen
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;
-        let tx_clone = Arc::clone(&self.chann.0);
-        let rx_clone = Arc::clone(&self.chann.1);
+        let tx_clone = self.chann.0.clone();
+        let rx_clone = self.chann.1.clone();
         // 接收数据
         pool.execute(move || received_data(raw_fd, tx_clone));
         pool.execute(move || send_data(raw_fd, rx_clone));

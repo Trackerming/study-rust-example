@@ -62,4 +62,11 @@ impl<'a> TcpArgs<'a> {
             port: parse_port(args, "tcpPort")? as u16,
         })
     }
+
+    pub fn from_to_param(args: &'a ArgMatches) -> Result<Self, String> {
+        Ok(TcpArgs {
+            host: args.value_of("host").ok_or_else(|| "could not find host")?,
+            port: parse_port(args, "toPort")? as u16,
+        })
+    }
 }

@@ -102,6 +102,38 @@ macro_rules! create_app {
                     ),
             )
             .subcommand(
+                Command::new("tcp_to_tcp_server")
+                    .about("listen a given port and send by tcp(host+port)")
+                    .arg(
+                        Arg::new("tcpPort")
+                            .long("tcpPort")
+                            .help("tcpPort")
+                            .takes_value(true)
+                            .required(true),
+                    )
+                    .arg(
+                        Arg::new("host")
+                            .long("host")
+                            .help("host")
+                            .takes_value(true)
+                            .required(true),
+                    )
+                    .arg(
+                        Arg::new("toHost")
+                            .long("toHost")
+                            .help("toHost")
+                            .takes_value(true)
+                            .required(true),
+                    )
+                    .arg(
+                        Arg::new("toPort")
+                            .long("toPort")
+                            .help("toPort")
+                            .takes_value(true)
+                            .required(true),
+                    ),
+            )
+            .subcommand(
                 Command::new("tcp_client")
                     .about("connect to a given cid and port")
                     .arg(

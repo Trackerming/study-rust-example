@@ -1,6 +1,6 @@
 use clap::{App, AppSettings, Arg, Command};
 use vsock_node::command_parser::{ClientArgs, ServerArgs, TcpArgs};
-use vsock_node::{client, create_app, tcp_client, tcp_to_vsock, vsock_to_tcp};
+use vsock_node::{client, create_app, tcp_client, tcp_to_tcp, tcp_to_vsock, vsock_to_tcp};
 
 fn main() {
     let app = create_app!();
@@ -19,6 +19,11 @@ fn main() {
             let tcp_args = TcpArgs::new_with(args).unwrap();
             let client_ags = ClientArgs::new_with(args).unwrap();
             tcp_to_vsock(tcp_args, client_ags).unwrap();
+        }
+        Some(("tcp_to_tcp_server", args)) => {
+            let tcp_args = TcpArgs::new_with(args).unwrap();
+            let to_tcp_args = TcpArgs::from_to_param(args).unwrap();
+            tcp_to_tcp(tcp_args, to_tcp_args).unwrap();
         }
         Some(("tcp_client", args)) => {
             let tcp_ags = TcpArgs::new_with(args).unwrap();
