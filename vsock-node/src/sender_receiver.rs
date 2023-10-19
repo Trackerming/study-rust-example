@@ -28,11 +28,22 @@ pub struct SenderReceiver<'a> {
 }
 
 fn send_data(fd: RawFd, rx: Arc<Mutex<Receiver<(Vec<u8>, u64)>>>) {
-    let recv = rx.lock().unwrap().recv().expect("rx lock recv failed.");
-    let (received, len) = recv;
-    send_u64(fd, len).expect("send data len failed");
-    send_loop(fd, &received, len).expect("send data failed.");
-    println!("send_data finish.");
+    let recv = rx.lock().unwrap().recv();
+    match recv {
+        Ok((buf, len)) => {
+            println!(
+                "in send data len: {len}, received len: {} {:?}",
+                buf.len(),
+                buf
+            );
+            send_u64(fd, len).expect("send data len failed");
+            send_loop(fd, &buf, len).expect("send data failed.");
+            println!("send_data finish.");
+        }
+        Err(e) => {
+            eprintln!("recv chann error: {e}");
+        }
+    }
 }
 
 fn received_data(raw_fd: RawFd, tx: Arc<Sender<(Vec<u8>, u64)>>) {
@@ -40,7 +51,8 @@ fn received_data(raw_fd: RawFd, tx: Arc<Sender<(Vec<u8>, u64)>>) {
         .map_err(|err| eprintln!("server accept failed: {:?}", err))
         .unwrap();
     let len = recv_u64(fd).unwrap();
-    let mut buf: Vec<u8> = Vec::new();
+    println!("in receive data len: {len}");
+    let mut buf: Vec<u8> = vec![0u8; len as usize];
     recv_loop(fd, &mut buf, len).unwrap();
     println!(
         "{}",
@@ -48,6 +60,7 @@ fn received_data(raw_fd: RawFd, tx: Arc<Sender<(Vec<u8>, u64)>>) {
             .map_err(|err| eprintln!("The received bytes are not utf8: {:?}", err))
             .unwrap()
     );
+    println!("received len: {:?}", buf);
     tx.send((buf, len)).expect("received data and send failed.");
 }
 
@@ -114,10 +127,11 @@ impl<'a> SenderReceiver<'a> {
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;
         let tx_clone = self.chann.0.clone();
-        let rx_clone = self.chann.1.clone();
+        let rx_clone = Arc::clone(&self.chann.1);
         // 接收数据
         pool.execute(move || received_data(raw_fd, tx_clone));
-        pool.execute(move || send_data(raw_fd, rx_clone));
+        let send_raw_fd = self.send_socket.as_raw_fd();
+        pool.execute(move || send_data(send_raw_fd, rx_clone));
         Ok(())
     }
 }

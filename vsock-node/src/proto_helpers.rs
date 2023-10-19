@@ -4,7 +4,7 @@ use std::mem::size_of;
 use std::os::unix::io::RawFd;
 
 pub fn send_u64(fd: RawFd, val: u64) -> Result<(), String> {
-    let mut buf = Vec::with_capacity(size_of::<u64>());
+    let mut buf = Vec::from([0u8; size_of::<u64>()]);
     LittleEndian::write_u64(&mut buf, val);
     send_loop(fd, &buf, size_of::<u64>().try_into().unwrap())?;
     Ok(())
@@ -25,7 +25,7 @@ pub fn send_loop(fd: RawFd, buf: &Vec<u8>, len: u64) -> Result<(), String> {
 }
 
 pub fn recv_u64(fd: RawFd) -> Result<u64, String> {
-    let mut buf = Vec::with_capacity(size_of::<u64>());
+    let mut buf = Vec::from([0u8; size_of::<u64>()]);
     recv_loop(fd, &mut buf, size_of::<u64>().try_into().unwrap())?;
     let val = LittleEndian::read_u64(&buf);
     Ok(val)

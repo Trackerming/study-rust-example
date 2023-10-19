@@ -10,6 +10,6 @@ let server = net.createServer((socket) => {
   });
 });
 
-server.listen(8888, () => {
+server.listen(8888, "127.0.0.1", () => {
   console.log('Tcp server start');
 });
