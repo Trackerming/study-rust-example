@@ -1,4 +1,5 @@
 use core::str::FromStr;
+use libc::{suseconds_t, time_t};
 use nix::sys::socket::{
     connect, shutdown, socket, AddressFamily, InetAddr, Shutdown, SockAddr, SockFlag,
     SockProtocol::Tcp, SockType,
@@ -7,6 +8,8 @@ use nix::unistd::close;
 use std::net::{IpAddr, SocketAddr};
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::string::String;
+
+extern crate libc;
 
 const MAX_CONNECTION_ATTEMPTS: usize = 5;
 
@@ -43,8 +46,8 @@ impl<'a> ProtoSocket<'a> {
         }
     }
 
-    fn get_raw_fd(proto_type: &ProtoType) -> Result<RawFd, String> {
-        let raw_fd = match *proto_type {
+    fn get_raw_fd(proto_type: ProtoType) -> Result<RawFd, String> {
+        let raw_fd = match proto_type {
             ProtoType::Vsock(_, _) => {
                 println!("get_raw_fd ProtoType::Vsock");
                 // target os为android 和 linux
@@ -70,13 +73,37 @@ impl<'a> ProtoSocket<'a> {
         Ok(raw_fd)
     }
 
+    fn set_timeout(tv_sec: u32, tc_usec: u32, raw_fd: RawFd) -> bool {
+        // 创建一个 `libc::timeval` 结构来设置超时时间
+        let mut timeout = libc::timeval {
+            tv_sec: tv_sec as time_t,        // 秒
+            tv_usec: tc_usec as suseconds_t, // 微秒 (1 秒 = 1,000,000 微秒)
+        };
+        // 设置连接超时选项
+        let result = unsafe {
+            libc::setsockopt(
+                raw_fd,
+                libc::SOL_SOCKET,
+                libc::SO_RCVTIMEO,
+                &timeout as *const _ as *const libc::c_void,
+                std::mem::size_of_val(&timeout) as u32,
+            )
+        };
+        if result != 0 {
+            false
+        } else {
+            true
+        }
+    }
+
     pub fn connect(proto_type: ProtoType<'a>) -> Result<ProtoSocket, String> {
         let addr = Self::get_addr(&proto_type);
         let mut err_msg = String::new();
         for i in 0..MAX_CONNECTION_ATTEMPTS {
-            let raw_fd = Self::get_raw_fd(&proto_type)?;
+            let raw_fd = Self::get_raw_fd(proto_type.clone())?;
             println!("SockAddr: {:?}, raw_fd: {:?}", addr, raw_fd);
             let proto_socket = ProtoSocket::new(proto_type.clone(), raw_fd);
+            Self::set_timeout(20, 0, proto_socket.as_raw_fd());
             match connect(proto_socket.as_raw_fd(), &addr) {
                 Ok(_) => {
                     println!("connect proto_socket {:?}", proto_socket);

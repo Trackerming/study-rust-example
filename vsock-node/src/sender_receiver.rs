@@ -11,7 +11,6 @@ use std::ffi::c_int;
 use std::net::{IpAddr, SocketAddr};
 use std::os::fd::{AsRawFd, RawFd};
 
-const VMADDR_CID_ANY: u32 = 0xFFFFFFFF;
 const BACKLOG: usize = 128;
 const BUF_MAX_LEN: usize = 8192;
 

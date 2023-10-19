@@ -11,5 +11,5 @@ COPY ["./src/enclave.ts", "/app/"]
 COPY ./vsock-node /app/
 RUN npm install -g yarn ts-node
 RUN yarn install
-EXPOSE 8000
+EXPOSE 8686
 CMD ["/app/run.sh"]
