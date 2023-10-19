@@ -1,5 +1,6 @@
 use crate::proto_helpers::{recv_loop, recv_u64, send_loop, send_u64};
 use crate::proto_socket::{ProtoSocket, ProtoType};
+use crate::thread_pool::ThreadPool;
 use core::str::FromStr;
 use nix::libc::listen;
 use nix::sys::socket::{
@@ -54,7 +55,25 @@ impl<'a> SenderReceiver<'a> {
         Ok(())
     }
 
-    pub fn listen_sever(&self) -> Result<(), String> {
+    fn receive_send_data(&self, raw_fd: RawFd) {
+        let fd = accept(raw_fd)
+            .map_err(|err| eprintln!("server accept failed: {:?}", err))
+            .unwrap();
+        let len = recv_u64(fd).unwrap();
+        let buf = &mut *self.buf.borrow_mut();
+        recv_loop(fd, buf, len).unwrap();
+        println!(
+            "{}",
+            String::from_utf8(self.buf.borrow().to_vec())
+                .map_err(|err| eprintln!("The received bytes are not utf8: {:?}", err))
+                .unwrap()
+        );
+        self.send_data(len).unwrap();
+        // 清空数据
+        buf.iter_mut().for_each(|e| *e = 0u8);
+    }
+
+    pub fn listen_sever(&self, pool: ThreadPool) -> Result<(), String> {
         let (raw_fd, socket_addr) = match self.recv_proto_type {
             ProtoType::Vsock(cid, port) => {
                 let socket_fd = socket(
@@ -91,19 +110,7 @@ impl<'a> SenderReceiver<'a> {
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;
         // 接收数据
-        loop {
-            let fd = accept(raw_fd).map_err(|err| format!("server accept failed: {:?}", err))?;
-            let len = recv_u64(fd)?;
-            let buf = &mut *self.buf.borrow_mut();
-            recv_loop(fd, buf, len)?;
-            println!(
-                "{}",
-                String::from_utf8(self.buf.borrow().to_vec())
-                    .map_err(|err| format!("The received bytes are not utf8: {:?}", err))?
-            );
-            self.send_data(len)?;
-            // 清空数据
-            buf.iter_mut().for_each(|e| *e = 0u8);
-        }
+        pool.execute(|| self.receive_send_data(raw_fd));
+        Ok(())
     }
 }
