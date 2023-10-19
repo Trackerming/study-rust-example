@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::ffi::c_int;
 use std::net::{IpAddr, SocketAddr};
 use std::os::fd::{AsRawFd, RawFd};
+use std::sync::RwLock;
 
 const BACKLOG: usize = 128;
 const BUF_MAX_LEN: usize = 8192;
@@ -19,7 +20,7 @@ pub struct SenderReceiver<'a> {
     send_socket: ProtoSocket<'a>,
     recv_proto_type: ProtoType<'a>,
     // 使用buf接收数据，当前只在单线程下；多线程可以考虑消息通信的方式
-    buf: RefCell<[u8; BUF_MAX_LEN]>,
+    buf: RwLock<[u8; BUF_MAX_LEN]>,
 }
 
 impl<'a> SenderReceiver<'a> {
@@ -30,7 +31,7 @@ impl<'a> SenderReceiver<'a> {
         SenderReceiver {
             send_socket: ProtoSocket::connect(send_proto_type).expect("send proto type error."),
             recv_proto_type,
-            buf: RefCell::new([0u8; BUF_MAX_LEN]),
+            buf: RwLock::new([0u8; BUF_MAX_LEN]),
         }
     }
 
@@ -50,7 +51,8 @@ impl<'a> SenderReceiver<'a> {
     fn send_data(&self, len: u64) -> Result<(), String> {
         let fd = self.send_socket.as_raw_fd();
         send_u64(fd, len)?;
-        send_loop(fd, &*self.buf.borrow(), len)?;
+        let buf = self.buf.read().unwrap();
+        send_loop(fd, &*buf, len)?;
         println!("send_data finish.");
         Ok(())
     }
@@ -60,11 +62,11 @@ impl<'a> SenderReceiver<'a> {
             .map_err(|err| eprintln!("server accept failed: {:?}", err))
             .unwrap();
         let len = recv_u64(fd).unwrap();
-        let buf = &mut *self.buf.borrow_mut();
+        let buf = &mut *self.buf.write().unwrap();
         recv_loop(fd, buf, len).unwrap();
         println!(
             "{}",
-            String::from_utf8(self.buf.borrow().to_vec())
+            String::from_utf8(buf.to_vec())
                 .map_err(|err| eprintln!("The received bytes are not utf8: {:?}", err))
                 .unwrap()
         );
