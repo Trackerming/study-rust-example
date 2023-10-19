@@ -23,10 +23,10 @@ pub fn client(args: ClientArgs) -> Result<(), String> {
     let fd = vsocket.as_raw_fd();
     // 示例发送数据
     let data = "hello server, this is client".to_string();
-    let buf = data.as_bytes();
+    let buf = data.as_bytes().to_vec();
     let len: u64 = buf.len().try_into().map_err(|err| format!("{:?}", err))?;
     send_u64(fd, len)?;
-    send_loop(fd, buf, len)?;
+    send_loop(fd, &buf, len)?;
     Ok(())
 }
 
@@ -54,9 +54,9 @@ pub fn tcp_client(args: TcpArgs) -> Result<(), String> {
     let fd = tcp_socket.as_raw_fd();
     // 示例发送数据
     let data = "hello server, this is tcp client".to_string();
-    let buf = data.as_bytes();
+    let buf = data.as_bytes().to_vec();
     let len: u64 = buf.len().try_into().map_err(|err| format!("{:?}", err))?;
     send_u64(fd, len)?;
-    send_loop(fd, buf, len)?;
+    send_loop(fd, &buf, len)?;
     Ok(())
 }

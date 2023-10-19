@@ -11,7 +11,9 @@ use std::cell::RefCell;
 use std::ffi::c_int;
 use std::net::{IpAddr, SocketAddr};
 use std::os::fd::{AsRawFd, RawFd};
-use std::sync::RwLock;
+use std::rc::Rc;
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{mpsc, Arc};
 
 const BACKLOG: usize = 128;
 const BUF_MAX_LEN: usize = 8192;
@@ -19,8 +21,31 @@ const BUF_MAX_LEN: usize = 8192;
 pub struct SenderReceiver<'a> {
     send_socket: ProtoSocket<'a>,
     recv_proto_type: ProtoType<'a>,
-    // 使用buf接收数据，当前只在单线程下；多线程可以考虑消息通信的方式
-    buf: RwLock<[u8; BUF_MAX_LEN]>,
+    chann: (Arc<Sender<(Vec<u8>, u64)>>, Arc<Receiver<(Vec<u8>, u64)>>),
+}
+
+fn send_data(fd: RawFd, rx: Arc<Receiver<(Vec<u8>, u64)>>) {
+    for (received, len) in *rx {
+        send_u64(fd, len).expect("send data len failed");
+        send_loop(fd, &received, len).expect("send data failed.");
+        println!("send_data finish.");
+    }
+}
+
+fn received_data(raw_fd: RawFd, tx: Arc<Sender<(Vec<u8>, u64)>>) {
+    let fd = accept(raw_fd)
+        .map_err(|err| eprintln!("server accept failed: {:?}", err))
+        .unwrap();
+    let len = recv_u64(fd).unwrap();
+    let mut buf: Vec<u8> = Vec::new();
+    recv_loop(fd, &mut buf, len).unwrap();
+    println!(
+        "{}",
+        String::from_utf8(buf.to_vec())
+            .map_err(|err| eprintln!("The received bytes are not utf8: {:?}", err))
+            .unwrap()
+    );
+    tx.send((buf, len)).expect("received data and send failed.");
 }
 
 impl<'a> SenderReceiver<'a> {
@@ -28,10 +53,11 @@ impl<'a> SenderReceiver<'a> {
         send_proto_type: ProtoType<'a>,
         recv_proto_type: ProtoType<'a>,
     ) -> Self {
+        let (tx, rx) = mpsc::channel();
         SenderReceiver {
             send_socket: ProtoSocket::connect(send_proto_type).expect("send proto type error."),
             recv_proto_type,
-            buf: RwLock::new([0u8; BUF_MAX_LEN]),
+            chann: (Arc::new(tx), Arc::new(rx)),
         }
     }
 
@@ -48,35 +74,8 @@ impl<'a> SenderReceiver<'a> {
         Ok(())
     }
 
-    fn send_data(&self, len: u64) -> Result<(), String> {
-        let fd = self.send_socket.as_raw_fd();
-        send_u64(fd, len)?;
-        let buf = self.buf.read().unwrap();
-        send_loop(fd, &*buf, len)?;
-        println!("send_data finish.");
-        Ok(())
-    }
-
-    fn receive_send_data(&self, raw_fd: RawFd) {
-        let fd = accept(raw_fd)
-            .map_err(|err| eprintln!("server accept failed: {:?}", err))
-            .unwrap();
-        let len = recv_u64(fd).unwrap();
-        let buf = &mut *self.buf.write().unwrap();
-        recv_loop(fd, buf, len).unwrap();
-        println!(
-            "{}",
-            String::from_utf8(buf.to_vec())
-                .map_err(|err| eprintln!("The received bytes are not utf8: {:?}", err))
-                .unwrap()
-        );
-        self.send_data(len).unwrap();
-        // 清空数据
-        buf.iter_mut().for_each(|e| *e = 0u8);
-    }
-
     pub fn listen_sever(&self, pool: ThreadPool) -> Result<(), String> {
-        let (raw_fd, socket_addr) = match self.recv_proto_type {
+        let (raw_fd, socket_addr): (RawFd, SockAddr) = match self.recv_proto_type {
             ProtoType::Vsock(cid, port) => {
                 let socket_fd = socket(
                     AddressFamily::Vsock,
@@ -111,8 +110,11 @@ impl<'a> SenderReceiver<'a> {
         // bind 和 listen
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;
+        let tx_clone = Arc::clone(&self.chann.0);
+        let rx_clone = Arc::clone(&self.chann.1);
         // 接收数据
-        pool.execute(|| self.receive_send_data(raw_fd));
+        pool.execute(move || received_data(raw_fd, tx_clone));
+        pool.execute(move || send_data(raw_fd, rx_clone));
         Ok(())
     }
 }
