@@ -4,6 +4,7 @@ use std::{
 };
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
+
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,

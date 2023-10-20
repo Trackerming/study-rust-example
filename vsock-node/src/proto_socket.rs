@@ -14,7 +14,7 @@ extern crate libc;
 const MAX_CONNECTION_ATTEMPTS: usize = 5;
 
 #[derive(Clone, Debug)]
-pub(crate) enum ProtoType<'a> {
+pub enum ProtoType<'a> {
     Vsock(u32, u32),
     Tcp(&'a str, u16),
 }

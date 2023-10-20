@@ -6,7 +6,7 @@ members = [
     "web-server",
     "study-practice",
     "crypto",
-    "vsock-node"
+    "vsock-node",
 ]
 
 [workspace.package]

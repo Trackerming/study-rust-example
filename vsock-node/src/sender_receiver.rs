@@ -90,7 +90,7 @@ impl<'a> SenderReceiver<'a> {
         Ok(())
     }
 
-    pub fn listen_sever(&self, pool: ThreadPool) -> Result<(), String> {
+    pub fn listen_sever(&self) -> Result<(), String> {
         let (raw_fd, socket_addr): (RawFd, SockAddr) = match self.recv_proto_type {
             ProtoType::Vsock(cid, port) => {
                 let socket_fd = socket(
@@ -126,12 +126,13 @@ impl<'a> SenderReceiver<'a> {
         // bind 和 listen
         bind(raw_fd, &socket_addr).map_err(|err| format!("server bind failed: {:?}.", err))?;
         self.listen_socket(raw_fd)?;
-        let tx_clone = self.chann.0.clone();
-        let rx_clone = Arc::clone(&self.chann.1);
-        // 接收数据
-        pool.execute(move || received_data(raw_fd, tx_clone));
         let send_raw_fd = self.send_socket.as_raw_fd();
-        pool.execute(move || send_data(send_raw_fd, rx_clone));
-        Ok(())
+        loop {
+            let tx_clone = self.chann.0.clone();
+            let rx_clone = Arc::clone(&self.chann.1);
+            // 接收数据
+            received_data(raw_fd, tx_clone);
+            send_data(send_raw_fd, rx_clone);
+        }
     }
 }

@@ -33,28 +33,25 @@ pub fn client(args: ClientArgs) -> Result<(), String> {
 pub fn vsock_to_tcp(args: ServerArgs, tcp_args: TcpArgs) -> Result<(), String> {
     let send_proto_type = ProtoType::Tcp(tcp_args.host, tcp_args.port);
     let recv_proto_type = ProtoType::Vsock(VMADDR_CID_ANY, args.port);
-    let pool = ThreadPool::new(2);
     let sender_receiver = SenderReceiver::new_with_proto_type(send_proto_type, recv_proto_type);
     println!("vsock_to_tcp get sender receiver");
-    sender_receiver.listen_sever(pool)
+    sender_receiver.listen_sever()
 }
 
 pub fn tcp_to_vsock(args: TcpArgs, client_args: ClientArgs) -> Result<(), String> {
     let recv_proto_type = ProtoType::Tcp(args.host, args.port);
     let send_proto_type = ProtoType::Vsock(client_args.cid, client_args.port);
-    let pool = ThreadPool::new(2);
     let sender_receiver = SenderReceiver::new_with_proto_type(send_proto_type, recv_proto_type);
     println!("tcp_to_vsock get sender receiver");
-    sender_receiver.listen_sever(pool)
+    sender_receiver.listen_sever()
 }
 
 pub fn tcp_to_tcp(args: TcpArgs, args2: TcpArgs) -> Result<(), String> {
     let recv_proto_type = ProtoType::Tcp(args.host, args.port);
     let send_proto_type = ProtoType::Tcp(args2.host, args2.port);
-    let pool = ThreadPool::new(2);
     let sender_receiver = SenderReceiver::new_with_proto_type(send_proto_type, recv_proto_type);
     println!("tcp_to_tcp get sender receiver");
-    sender_receiver.listen_sever(pool)
+    sender_receiver.listen_sever()
 }
 pub fn tcp_client(args: TcpArgs) -> Result<(), String> {
     let proto_type = ProtoType::Tcp(args.host, args.port);
