@@ -35,4 +35,5 @@ fn main() {
     // study_practice::concurrency::channel_message_passing::practice();
     // study_practice::concurrency::sync_lock_condvar::practice();
     study_practice::concurrency::atomic_usage::practice();
+    study_practice::concurrency::send_sync_trait::practice();
 }
