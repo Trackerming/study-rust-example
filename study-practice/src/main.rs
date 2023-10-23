@@ -1,6 +1,6 @@
 use study_practice;
 
-async fn main() {
+fn main() {
     // 基础知识
     study_practice::var_ownership::practice();
     study_practice::borrow_reference::practice();
@@ -33,5 +33,6 @@ async fn main() {
     study_practice::advance_rust::pointer_ref_loop::practice();
     study_practice::concurrency::thread_usage::practice();
     // study_practice::concurrency::channel_message_passing::practice();
-    study_practice::concurrency::sync_lock_condvar::practice();
+    // study_practice::concurrency::sync_lock_condvar::practice();
+    study_practice::concurrency::atomic_usage::practice();
 }
