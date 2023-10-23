@@ -402,7 +402,7 @@ checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
 
 [[package]]
 name = "crypto"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "alloy-primitives",
  "secp256k1",
@@ -574,7 +574,7 @@ dependencies = [
 
 [[package]]
 name = "hello_macro_derive"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -734,7 +734,7 @@ dependencies = [
 
 [[package]]
 name = "minigrep"
-version = "0.2.1"
+version = "0.2.2"
 
 [[package]]
 name = "minimal-lexical"
@@ -1247,7 +1247,7 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "study-example"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "c-kzg",
  "hello_macro_derive 0.1.0",
@@ -1256,7 +1256,7 @@ dependencies = [
 
 [[package]]
 name = "study-practice"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "rand",
 ]
@@ -1422,7 +1422,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "vsock-node"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "byteorder",
  "clap",
@@ -1448,7 +1448,7 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "web-server"
-version = "0.2.1"
+version = "0.2.2"
 
 [[package]]
 name = "which"
