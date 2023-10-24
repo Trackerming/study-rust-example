@@ -9,6 +9,7 @@ unsafe impl Send for SendBox {}
 
 fn send_impl() {
     let box1 = SendBox(5 as *mut u8);
+    // 传进线程的是数据
     let handle1 = thread::spawn(move || {
         println!("in send impl {:?}", box1);
     });
@@ -23,6 +24,7 @@ unsafe impl Sync for SyncBox {}
 fn sync_impl() {
     let box1 = SyncBox(5 as *const u8);
     let val = Arc::new(Mutex::new(box1));
+    // 传进线程的还是引用
     let handle1 = thread::spawn(move || {
         let v = val.lock().unwrap();
         println!("in sync box: {:?}", v);

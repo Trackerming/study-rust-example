@@ -18,4 +18,5 @@ pub mod tuple;
 /// 练习的来源 https://zh.practice.rs/
 pub mod var_ownership;
 
+pub mod async_await;
 pub mod concurrency;
