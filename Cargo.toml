@@ -7,7 +7,8 @@ members = [
     "study-practice",
     "crypto",
     "vsock-node",
-    "async-web-server"
+    "async-web-server",
+    "redis-simple"
 ]
 
 [workspace.package]
