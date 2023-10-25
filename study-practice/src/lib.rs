@@ -1,4 +1,6 @@
 #![feature(test)]
+#![feature(future_join)]
+
 pub mod advance_rust;
 pub mod array_practice;
 pub mod borrow_reference;

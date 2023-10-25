@@ -37,4 +37,5 @@ fn main() {
     // study_practice::concurrency::atomic_usage::practice();
     // study_practice::concurrency::send_sync_trait::practice();
     study_practice::async_await::basic_usage::practice();
+    study_practice::async_await::join_select::practice();
 }
