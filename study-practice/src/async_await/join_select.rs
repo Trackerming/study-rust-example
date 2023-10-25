@@ -92,8 +92,8 @@ async fn loop_select_example() {
 }
 
 async fn add_two_stream(
-    mut s1: impl Stream<Item=u8> + FusedStream + Unpin,
-    mut s2: impl Stream<Item=u8> + FusedStream + Unpin,
+    mut s1: impl Stream<Item = u8> + FusedStream + Unpin,
+    mut s2: impl Stream<Item = u8> + FusedStream + Unpin,
 ) -> u8 {
     let mut total = 0;
     loop {
@@ -150,7 +150,8 @@ fn recursive() -> BoxFuture<'static, ()> {
     async move {
         recursive().await;
         recursive().await;
-    }.boxed()
+    }
+    .boxed()
 }
 
 /// trait中定义async fn
