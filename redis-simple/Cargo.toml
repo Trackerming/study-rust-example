@@ -11,3 +11,12 @@ repository.workspace = true
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 mini-redis = "0.4"
+
+[[example]]
+name = "hello-redis"
+path = "examples/hello-redis.rs"
+
+# 显示指定和默认main效果类似
+[[bin]]
+name = "redis-simple"
+path = "src/main.rs"
