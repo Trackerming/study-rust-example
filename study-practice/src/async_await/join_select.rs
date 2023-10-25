@@ -1,12 +1,13 @@
 use futures::executor::block_on;
 use futures::stream::{FusedStream, Stream, StreamExt};
 use futures::{
-    future::{Fuse, FutureExt},
+    future::{BoxFuture, FutureExt},
     pin_mut, select, try_join, TryFutureExt,
 };
 use std::fmt::Error as FmtError;
 use std::future::{join, Future};
 use std::io::Error;
+use std::rc::Rc;
 
 #[derive(Debug)]
 struct Task<T> {
@@ -91,8 +92,8 @@ async fn loop_select_example() {
 }
 
 async fn add_two_stream(
-    mut s1: impl Stream<Item = u8> + FusedStream + Unpin,
-    mut s2: impl Stream<Item = u8> + FusedStream + Unpin,
+    mut s1: impl Stream<Item=u8> + FusedStream + Unpin,
+    mut s2: impl Stream<Item=u8> + FusedStream + Unpin,
 ) -> u8 {
     let mut total = 0;
     loop {
@@ -126,8 +127,59 @@ async fn add_two_stream(
     }
 }*/
 
+/// 非send的特征的数据在async的作用域
+#[derive(Default)]
+struct NotSendTraitStruct(Rc<()>);
+
+async fn bar() {
+    println!("bar...");
+}
+
+async fn foo() {
+    println!("foo");
+    {
+        let _not_send_struct = NotSendTraitStruct::default();
+    } // 在这里not_send_struct被drop了
+    bar().await;
+}
+
+fn require_send(_: impl Send) {}
+
+/// 递归async fn
+fn recursive() -> BoxFuture<'static, ()> {
+    async move {
+        recursive().await;
+        recursive().await;
+    }.boxed()
+}
+
+/// trait中定义async fn
+/*
+error[E0706]: functions in traits cannot be declared `async`
+   --> study-practice/src/async_await/join_select.rs:158:5
+    |
+158 |     async fn test();
+    |     -----^^^^^^^^^^^
+    |     |
+    |     `async` because of this
+    |
+    = note: `async` trait functions are not currently supported
+    = note: consider using the `async-trait` crate: https://crates.io/crates/async-trait
+    = note: see issue #91611 <https://github.com/rust-lang/rust/issues/91611> for more information
+    = help: add `#![feature(async_fn_in_trait)]` to the crate attributes to enable
+*/
+trait TestAsync {
+    async fn test();
+}
+
 pub fn practice() {
     block_on(join_example());
     block_on(select_example());
     block_on(loop_select_example());
+    let fut = async {
+        let _ = task1().await.map_err(|err| "err1".to_string());
+        let _ = task2().await.map_err(|err| "err2".to_string());
+    };
+    block_on(fut);
+    require_send(foo());
 }

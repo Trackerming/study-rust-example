@@ -1,5 +1,6 @@
 #![feature(test)]
 #![feature(future_join)]
+#![feature(async_fn_in_trait)]
 
 pub mod advance_rust;
 pub mod array_practice;
