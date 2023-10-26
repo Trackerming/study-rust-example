@@ -11,12 +11,19 @@ repository.workspace = true
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 mini-redis = "0.4"
+bytes = "1.5.0"
 
 [[example]]
 name = "hello-redis"
 path = "examples/hello-redis.rs"
+[[example]]
+name = "await-lock"
+path = "examples/await-lock.rs"
 
 # 显示指定和默认main效果类似
 [[bin]]
-name = "redis-simple"
-path = "src/main.rs"
+name = "redis-simple-server"
+path = "src/bin/server.rs"
+[[bin]]
+name = "redis-simple-client"
+path = "src/bin/client.rs"
