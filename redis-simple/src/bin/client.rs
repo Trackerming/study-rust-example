@@ -1,7 +1,6 @@
 use mini_redis::client;
 use tokio::sync::{mpsc, oneshot};
 
-use redis_simple::command;
 use redis_simple::command::Command;
 
 #[tokio::main]
