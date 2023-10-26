@@ -19,6 +19,9 @@ path = "examples/hello-redis.rs"
 [[example]]
 name = "await-lock"
 path = "examples/await-lock.rs"
+[[example]]
+name = "io-rw"
+path = "examples/io-rw.rs"
 
 # 显示指定和默认main效果类似
 [[bin]]
