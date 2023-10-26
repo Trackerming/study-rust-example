@@ -12,6 +12,8 @@ repository.workspace = true
 tokio = { version = "1", features = ["full"] }
 mini-redis = "0.4"
 bytes = "1.5.0"
+futures = "0.3"
+crossbeam = "0.8"
 
 [[example]]
 name = "hello-redis"
@@ -22,6 +24,9 @@ path = "examples/await-lock.rs"
 [[example]]
 name = "io-rw"
 path = "examples/io-rw.rs"
+[[example]]
+name = "mini-tokio"
+path = "examples/mini-tokio.rs"
 
 # 显示指定和默认main效果类似
 [[bin]]
