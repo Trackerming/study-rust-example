@@ -14,6 +14,7 @@ mini-redis = "0.4"
 bytes = "1.5.0"
 futures = "0.3"
 crossbeam = "0.8"
+serde = { version = "1.0.189", features = ["derive"] }
 
 [[example]]
 name = "hello-redis"
@@ -27,6 +28,9 @@ path = "examples/io-rw.rs"
 [[example]]
 name = "mini-tokio"
 path = "examples/mini-tokio.rs"
+[[example]]
+name = "my-select"
+path = "examples/my-select.rs"
 
 # 显示指定和默认main效果类似
 [[bin]]

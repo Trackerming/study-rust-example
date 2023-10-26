@@ -1743,6 +1743,7 @@ dependencies = [
  "crossbeam",
  "futures",
  "mini-redis",
+ "serde",
  "tokio",
 ]
 

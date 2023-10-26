@@ -1,5 +1,6 @@
 use crossbeam::channel;
 use futures::task::{self, ArcWake};
+use serde::Deserialize;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
@@ -82,6 +83,7 @@ impl Task {
     where
         F: Future<Output = ()> + Send + 'static,
     {
+        println!("task spawn");
         let task = Arc::new(Task {
             future: Mutex::new(Box::pin(future)),
             executor: sender.clone(),
@@ -105,11 +107,14 @@ impl MiniTokio {
     where
         F: Future<Output = ()> + Send + 'static,
     {
+        println!("Mini Tokio spawn");
         Task::spawn(future, &self.sender);
     }
 
     fn run(&mut self) {
+        println!("Mini tokio run");
         while let Ok(task) = self.scheduled.recv() {
+            println!("Got task: ");
             task.poll();
         }
     }
