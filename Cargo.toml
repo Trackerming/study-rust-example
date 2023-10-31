@@ -9,7 +9,9 @@ members = [
     "vsock-node",
     "async-web-server",
     "redis-simple",
-    "list"
+    "list",
+    "algorithms",
+    "./algorithms/algorithms-utils"
 ]
 
 [workspace.package]
