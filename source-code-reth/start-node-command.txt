@@ -139,6 +139,87 @@ partition #pink "RethNodeComponentsImpl初始化" {
 partition #yellow "与共识层协作，构建payload" {
     :unbounded_channel获取(consensus_engine_tx, consensus_engine_rx);
     :根据配置获取最大block的个数 max_block;
+    :build_networked_pipeline;
+    note right
+    构建与网络连接的pipeline(管道)与EitherDownloader::Right(network_client)
+    ----
+    1. ReverseHeadersDownloaderBuilder
+    2. BodiesDownloaderBuilder
+    - 1和2通过TaskDownloader::spawn_with构建分别得到header_downloader和body_downloader
+    3. dev下是EitherDownloader::Left(client)
+    end note
+    :build_pipeline;
+    note right
+    构建pipeline
+    ----
+    1. tokio::sync::watch::channel(B256::ZERO)的使用(tip_tx, tip_rx)
+    2. revm的factory配置采取InspectorStackConfig
+    3. PruneModes和HeaderSyncMode
+    4. crates/stages 中的各个stage需要搞清楚
+    end note
+    :listen pipeline_events;
+    note right
+    ----
+    tokio::sync::mpsc::unbounded_channel()
+    listeners.push(sender)
+    返回UnboundedReceiverStream<PipelineEvent>
+    end note
 }
+:根据配置设置初始化的目标initial_target;
+:watch::channel(None);
+note right:highest_snapshots_tx和highest_snapshots_rx
+:EngineHooks::new();
+: 根据prune_conf设置prune相关的events;
+: Snapshotter::new(clone_db, chain_clone, chain.snapshot_block_interval,highest_snapshots_tx,);
+note right:crates/snapshot中
+partition "BeaconConsensusEngine init" {
+    #pink: BeaconConsensusEngine::with_channel();
+    note right
+        获取beacon_consensus_engine和beacon_engine_handle
+        ----
+        1. client, pipeline得到的ether download
+        2. pipeline, pipeline得到的ether download
+        3. blockchain_db_clone,
+        4. Box::new(ctx.task_executor.clone()),
+        5. Box::new(network.clone()),
+        6. max_block,
+        7. self.debug.continuous,
+        8. payload_builder.clone(), PayloadBuilderHandle
+        9. initial_target,
+        10. MIN_BLOCKS_FOR_PIPELINE_RUN,
+        11. consensus_engine_tx,
+        12. consensus_engine_rx,
+        13. hooks,
+    end note
+}
+partition #yellow "events listen" {
+    :stream_select!;
+    note right
+    stream_select宏转换为events
+    ----
+    1. network.event_listener
+    2. beacon_engine_handle.event_listener
+    3. pipeline_events
+    4. Either::Right，dev为Either::Left
+    5. pruner_events
+    end note
+    :ctx.task_executor.spawn_critical(events task);
+}
+partition "EngineApi init"{
+    :EngineApi::new;
+    :load jwt secret;
+    :rpc.start_servers;
+    note right
+    启动rpc server的参数如下
+    ----
+    &components, engine_api, jwt_secret, &mut self.ext
+    http的rpc在哪里启动的？
+    end note
+    :oneshot::channel 使用rx和tx;
+    :ctx.task_executor.spawn_critical_blocking("consensus engine");
+    :self.ext.on_node_started(&components)? ;
+    :rx.await;
+}
+:根据配置决定退出状态;
 :finish;
 @enduml
