@@ -15,9 +15,9 @@ macro_rules! tree {
     ($e:expr) => {
         TreeLink::leaf($e)
     };
-    ($e:expr, $l:expr, $r:expr) =>{
+    ($e:expr, $l:expr, $r:expr) => {
         TreeLink::branch($e, $l, $r)
-    }
+    };
 }
 
 pub trait TreeMaker<T> {

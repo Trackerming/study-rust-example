@@ -2,6 +2,8 @@ use algorithms_utils::tree;
 use algorithms_utils::tree::TreeLink;
 use algorithms_utils::tree::TreeMaker;
 
+// https://github.com/warycat/rustgym/blob/master/leetcode/src/d10/_1008_construct_binary_search_tree_from_preorder_traversal.rs
+
 struct Solution;
 
 trait Postorder<T: std::cmp::Ord + Copy> {

@@ -1,0 +1,144 @@
+@startuml
+:main;
+:reth::cli::run()|
+note right
+ Cli<()>::parse().run,
+ ----
+ //借助clap做参数解析//;
+end note
+:tracing[init log];
+:match_command(Node);
+:runner[run_command_until_exit];
+note right#red: 获取(context、tokio_runtime、task_manager)
+#pink:NodeCommand::execute();
+:raise_fd_limit();
+note right:限制进程的fd,fdlimit crate
+partition "dir path handle(**data_dir**)"{
+    :handle_dir;
+    note right:处理数据目录
+    :load_config(reth.toml);
+    :db_path(init_db);
+    note right
+    init_db_by(db_path, log_level)
+    ----
+    //Arc<DatabaseEnv>类型的db，type DatabaseEnv = Env<WriteMap>//
+    位于crate/storage/db
+    end note
+}
+:start_metrics_endpoint**.await**(clone_db);
+note right: prometheus_exporter::initialize
+:init_genesis_by(clone_db, node_command.chain);
+note right: chain的类型Arc<ChainSpec>
+:display_chain_fork，显示hardfork以及active的情况;
+partition #pink "get_consensus"{
+    if (self.dev.dev?) then (yes)
+        :AutoSealConsensus::new;
+    else (no)
+        :BeaconConsensus::new;
+    endif
+}
+:init_trusted_nodes(&mut config);
+note right: 根据self.network.trusted_only设置config以及trusted_peers非空时候添加到config的trusted_nodes中
+:metrics_channel;
+note right: 使用tokio的unbounded_channel
+split
+    partition "监听指标任务" {
+        :MetricsListener::new(metrics_rx of metrics_channel的receiver);
+        :task_executor spawn(metrics_listener task);
+    }
+    :finish;
+split again
+    :get prune_config;
+    partition #yellow "configure blockchain tree" {
+        :TreeExternals::new(**db_clone**, consensus_clone, **Factory::new(chain_spec_clone)**, chain);
+        note right: factory crates/revm的factory
+        :BlockchainTree::new(tree_externals, default_config, prune_config);
+        :blockchain_tree.with_sync_metrics_tx(metrics_tx);
+        :ShareableBlockchainTree::new(blockchain_tree);
+        note right
+        blockchain_tree中的重点结构
+        ----
+        1. metrics_channel的sender
+        2. tokio::sync::broadcast::channel中的canon_state_notification_sender
+        canon_state_notification_sender 被后续使用
+        3. last_finalized_block_number和last_canonical_hashes的TreeState
+        4. prune_mode
+        5. ShareableBlockchainTree封装了Arc<parking_lot::RwLock<BlockchainTree>>
+        end note
+    }
+:fetch_head();
+note right: 从数据库中fetch当前链头Head的状态;
+partition "构建blockchain provider" {
+    :ProviderFactory::new(db_clone, chain_spec_clone);
+    :BlockchainProvider::new(provider_factory, shareable_blockchain_tree_clone);
+    note right#red: 获取**blockchain_db**
+    :get blob_store;
+    note right: InMemoryBlobStore::default()
+    partition "get transaction_validation_task_executor得到**validator**" {
+        : get EthTransactionValidatorBuilder;
+        : builder.with_head_timestamp();
+        : builder.kzg_settings();
+        : builder.with_additional_tasks;
+        #pink:builder.build_with_tasks(blockchain_db_clone, ctx的task_executor_clone, blob_store_clone);
+        note right
+        一些异步的task任务
+        ----
+        1. ValidationTask，采用mpsc::channel,receiver接收处理，采用的task_clone
+        2. tasks.spawn_critical_blocking，transaction-validation-service，同样的task handle？
+        3. 显式将ValidationJobSender赋值给transaction_validation_task_executor对应的字段，channel的sender
+        end note
+    }
+}
+partition #pink "transaction_pool(crates/transaction-pool) tasks" {
+    :Pool::eth_pool(validator, blob_store, pool_config);
+    :blockchain_db.canonical_state_stream的chain_events;
+    note right
+        消息传递最终还是tokio::sync::broadcast::channel的sender的subscribe和tokio-stream中的BroadcastStream
+        ----
+        = BlockchainProvider.tree.subscribe_to_canonical_state
+        = shared_blockchain_tree.tree.subscribe_canon_state
+        = blockchain_tree.canon_state_notification_sender.subscribe
+    end note
+    :ctx.task_executor.spawn_critical(transaction_pool::maintain::maintain_transaction_pool_future(blockchain_db_clone, transaction_pool_clone, chain_events, ctx.task_executor_clone, default_config));
+}
+partition "P2P网络连接处理 **得到network**" {
+    :p2p_secret_path;
+    :get secret key;
+    note right: 添加enode的加密key信息，标识一个网络节点的key
+    :获取network_config通过在指定目录;
+    #pink:start_network;
+    note right
+    P2P网络连接的处理，包含一些异步的任务，crates/net/network
+    ----
+    1. NetworkManager.new.await? = bind+discover的await
+    2. 任务执行spawn_critical "p2p txpool"
+    3. 任务执行spawn_critical "p2p eth request handler"
+    4. 任务执行spawn_critical_with_signal "p2p network task"
+    end note
+    : fetch_client;
+    note right
+    发送FetchClient消息
+    ----
+    1. 借助tokio的oneshot::channel send FetchClient消息
+    2. channel的rx .await
+    end note
+}
+partition #pink "RethNodeComponentsImpl初始化" {
+    :blockchain_provider = blockchain_db_clone;
+    :transaction_pool = transaction_pool_clone;
+    :network = network_clone;
+    :task_executor = ctx.task_executor_clone;
+    :events = blockchain_db_clone;
+    note right#red
+    借助NodeCommand.ext.on_components_initialized
+    ----
+    1. task_executor 当前有几个executor？
+    2. events和blockchain_provider clone的同一个blockchain_db？
+    end note
+}
+partition #yellow "与共识层协作，构建payload" {
+    :unbounded_channel获取(consensus_engine_tx, consensus_engine_rx);
+    :根据配置获取最大block的个数 max_block;
+}
+:finish;
+@enduml
