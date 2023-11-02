@@ -26,7 +26,7 @@ partition "dir path handle(**data_dir**)"{
     end note
 }
 :start_metrics_endpoint**.await**(clone_db);
-note right: prometheus_exporter::initialize
+note right: prometheus_exporter::initialize 和NodeCommand.metrics配置指定
 :init_genesis_by(clone_db, node_command.chain);
 note right: chain的类型Arc<ChainSpec>
 :display_chain_fork，显示hardfork以及active的情况;
