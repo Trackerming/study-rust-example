@@ -67,7 +67,7 @@ split again
         end note
     }
 :fetch_head();
-note right: 从数据库中fetch当前链头Head的状态;
+note right: 从数据库结合ChainSpec的chain_clone中fetch当前链头Head的状态;
 partition "构建blockchain provider" {
     :ProviderFactory::new(db_clone, chain_spec_clone);
     :BlockchainProvider::new(provider_factory, shareable_blockchain_tree_clone);
