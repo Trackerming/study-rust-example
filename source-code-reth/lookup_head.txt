@@ -1,0 +1,22 @@
+@startuml
+:loop_up(db_clone);
+note right
+1. db来自于init_db(&db_path, db_config.log_level)
+end note
+:ProviderFactory::new(db_clone, NodeCommand的ChainSpec);
+#pink:factory.provider()?;
+note right
+说明：返回一个内含`DbTx`的提供者，允许使用不同类型的providers从数据库匹配数据，比如HeaderProvider和BlockHashReader；
+如果内部读取数据库的事务无法打开可能会失败；
+1. providers/database/mod中ProviderFactory调用DatabaseProvider::new(db_clone.tx, chain_spec)
+2. tx是Database的trait，抽象层的定义；
+3. **这里的db实例的实现是指的storage/db/implementation/mod.rs中的Database::tx**；
+4. 继续看下去，具体是调用了c库的ffi::mdbx_txn_begin_ex()
+end note
+:provider.get_stage_checkpoint获取StageId::Finish的checkpoint，进而那到block_number;
+:根据拿到的block_number读取数据库的header,典型读数据库;
+:根据chain_spec定义的ttd区分获取ttd;
+note right: 高于merge的blockNumber total difficulty为定义的固定的ttd，低于merge的使用数据库中保存的header中读取
+: **根据number从CanonicalHeaders table查询得到hash？**;
+: 返回头信息包括number、hash、difficulty、total_difficulty和时间戳;
+@enduml
