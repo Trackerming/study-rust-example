@@ -67,7 +67,10 @@ split again
         end note
     }
 :fetch_head();
-note right: 从数据库结合ChainSpec的chain_clone中fetch当前链头Head的状态;
+note right
+从数据库结合ChainSpec的chain_clone中fetch当前链头Head的状态
+为什么这里fetch_head要在内部构建Provider，下面**紧接着**又是构建blockchain_provider？又在读取了chain_header之后drop了？
+end note
 partition "构建blockchain provider" {
     :ProviderFactory::new(db_clone, chain_spec_clone);
     :BlockchainProvider::new(provider_factory, shareable_blockchain_tree_clone);

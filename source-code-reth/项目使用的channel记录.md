@@ -73,3 +73,33 @@
     - canonical state是代表的什么
     - 跟reorg的深度有关，比如当前最大的reorg的深度为64，则channel的最大size就是64*2=128；注释的解释是因为最大的reorg的深度至少是N个block必须被一次发送；
   构建了一个broadcast channel
+
+### mpsc::channel
+
+- 来源：`crates/transaction-pool/src/validate/task`中的`ValidationTask::new`
+
+```Rust
+    pub fn new() -> (ValidationJobSender, Self) {
+        let (tx, rx) = mpsc::channel(1);
+        (ValidationJobSender { tx }, Self::with_receiver(rx))
+    }
+#[derive(Debug)]
+pub struct ValidationJobSender {
+    tx: mpsc::Sender<Pin<Box<dyn Future<Output = ()> + Send>>>,
+}
+#[derive(Clone)]
+pub struct ValidationTask {
+    #[allow(clippy::type_complexity)]
+    validation_jobs: Arc<Mutex<ReceiverStream<Pin<Box<dyn Future<Output = ()> + Send>>>>>,
+}
+
+```
+- channel特点
+    - **多生产者**功能允许从多个任务发送消息。创建通道会返回两个值：发送者和接收者。两个手柄分开使用。他们可能会被转移到不同的任务；**单消费**者，这里就是指的创建这个channel的`ValidationTask`本身，且不可被复制；
+    - 创建的通道容量为 32。如果消息发送速度快于接收速度，通道将存储它们。一旦 32 条消息存储在通道中，调用 `send(...).await` 将进入休眠状态，直到接收者删除一条消息；
+    - 当每个 `Sender` 超出范围或已被删除时，就不再可能向通道发送更多消息。此时，对 `Receiver` 的 `recv` 调用将返回 `None` ，这意味着所有发送者都消失了，通道已关闭；
+- 业务特点
+    - 就是`ValidationTask`生成了一个mpsc的channel，将发送端的句柄扔出来，保留接收端；
+    - 然后`tasks.spawn_blocking`启动一个任务用于`ValidationTask`接收task并执行其run方法；注释的因为它们执行db的loopup致使blocking啥意思？
+    - 随后又采用`tasks.spawn_critical_blocking`显示命名transaction-validation-service运行task的run？没看懂这里不是单接收者么，运行两个spawn处理不还是一个一个的来？
+    - 然后将发送端的句柄封装成Arc<Mutex<>>结构传递出去；
