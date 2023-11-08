@@ -37,9 +37,11 @@ mod test {
         // [1, 0, 2, 3, 2, 5, 3]
         // [1, 0, 2, 3, 2...
         let result = find_repeat_of_array(&mut array);
+        println!("array {:?}", array);
         assert_eq!(result, Some(2));
         let mut array = vec![1, 0, 3, 2, 5, 4];
         let result = find_repeat_of_array(&mut array);
+        println!("array {:?}", array);
         assert_eq!(result, None);
         let mut array = vec![0];
         let result = find_repeat_of_array(&mut array);
