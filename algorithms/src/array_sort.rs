@@ -1,9 +1,8 @@
-
 /// 思路：相邻的元素比较，每一轮将大的元素往后放，每轮就确定了本轮的最大值
 /// 重点：在内层的循环中的变量控制
 pub fn bubble_sort<T>(array: &mut [T])
-    where
-        T: PartialOrd,
+where
+    T: PartialOrd,
 {
     let mut swapped;
     for mut i in 0..array.len() {
@@ -64,8 +63,8 @@ pub fn quick_sort<T: PartialOrd>(array: &mut [T]) {
 /// 开始类似的过程执行 right: [9, 76, 98, 57]
 /// 最后归并最初的栈[6, 7, 12, 43]和[9, 57, 76, 98]
 pub fn merge_sort<T>(array: &mut [T])
-    where
-        T: PartialOrd + Clone,
+where
+    T: PartialOrd + Clone,
 {
     let len = array.len();
     if len <= 1 {

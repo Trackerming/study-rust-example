@@ -3,3 +3,4 @@ pub mod binary_search_tree_from_preorder_traversal;
 pub mod array_2d_search;
 pub mod array_sort;
 pub mod repeat_of_array;
+pub mod tree_iterator;
