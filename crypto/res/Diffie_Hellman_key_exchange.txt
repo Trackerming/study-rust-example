@@ -1,0 +1,17 @@
+@startuml
+title Diffie_Hellman key exchange过程
+participant Alice[
+    =Alice
+    ----
+    "keep secret a"
+]
+participant Bob[
+    =Bob
+    ----
+    "keep secret b"
+]
+Alice --> Bob: 发送A = g^a mod p
+Bob --> Alice: 发送B = g^b mod p
+Alice --> Alice: 计算B^a mod p= (g^b)^a mod p
+Bob --> Bob: 计算A^b mod p = (g^a)^b mod p
+@enduml
