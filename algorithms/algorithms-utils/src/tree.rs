@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Ord, Eq, PartialEq, PartialOrd)]
+#[derive(Debug, Ord, Eq, PartialEq, PartialOrd, Clone)]
 pub struct TreeNode<T> {
     pub val: T,
     pub left: TreeLink<T>,
