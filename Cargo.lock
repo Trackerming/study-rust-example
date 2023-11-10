@@ -775,6 +775,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto_small_math"
+version = "0.2.2"
+
+[[package]]
 name = "derivative"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

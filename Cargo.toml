@@ -6,6 +6,7 @@ members = [
     "web-server",
     "study-practice",
     "crypto",
+    "./crypto/crypto_small_math",
     "vsock-node",
     "async-web-server",
     "redis-simple",
