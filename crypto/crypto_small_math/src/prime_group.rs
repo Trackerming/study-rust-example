@@ -86,6 +86,10 @@ impl MulPrimeGroup {
         }
     }
 
+    /// 安全计算应该
+    /// ```math
+    /// (self.g % self.mod_num * value % self.mod_num) % self.mod_num
+    /// ```
     fn multiply_mod(&self, value: i8) -> i8 {
         (self.g * value) % self.mod_num
     }

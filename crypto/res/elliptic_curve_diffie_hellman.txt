@@ -1,0 +1,6 @@
+@startuml
+@startlatex
+
+:<math>x^2+y_1+z_12^34</math>;
+@endlatex
+@enduml
