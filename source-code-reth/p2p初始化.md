@@ -38,3 +38,89 @@
 - 主要的配置builder设置清楚了，head数据库等也准备就绪
 
 ##### 基于config启动network
+
+- 构建`NetworkHandle`、`NetworkManager`、`TransactionManager`、`EthRequestHandler`；
+    - `NetworkManager.builder(NetworkConfig).await.transactions(pool).request_handler(ProviderFactory).split_with_handle()`
+    - `NetworkManager::new`过程分析，根据配置new相应的组件如
+        - `PeersManager::new`
+
+          PeersManager中的unbounded_channel
+
+            - 将上述的sender clone出来成为`peers_handle`
+        - `ConnectionListener::bind` 这里是await等异步的执行；
+            - tokio::net::tcp::TcpListener的bind
+        - `Discovery::new`
+        - `SessionManager::new`
+
+          Network中SessionManager的mpsc::channel
+        - `NetworkState::new`，状态包括如下
+            - active_peers
+            - peers_manager
+            - queued_messages
+            - discovery
+            - genesis_hash
+            - state_fetcher：更细致的划分
+
+```Rust
+#[derive(Debug)]
+pub struct StateFetcher {
+    /// Currently active [`GetBlockHeaders`] requests
+    inflight_headers_requests:
+        HashMap<PeerId, Request<HeadersRequest, PeerRequestResult<Vec<Header>>>>,
+    /// Currently active [`GetBlockBodies`] requests
+    inflight_bodies_requests:
+        HashMap<PeerId, Request<Vec<B256>, PeerRequestResult<Vec<BlockBody>>>>,
+    /// The list of _available_ peers for requests.
+    peers: HashMap<PeerId, Peer>,
+    /// The handle to the peers manager
+    peers_handle: PeersHandle,
+    /// Number of active peer sessions the node's currently handling.
+    num_active_peers: Arc<AtomicUsize>,
+    /// Requests queued for processing
+    queued_requests: VecDeque<DownloadRequest>,
+    /// Receiver for new incoming download requests
+    download_requests_rx: UnboundedReceiverStream<DownloadRequest>,
+    /// Sender for download requests, used to detach a [`FetchClient`]
+    download_requests_tx: UnboundedSender<DownloadRequest>,
+}
+```
+- `Swarm::new`，Swarm的功能如下
+
+```Mermaid
+graph TB
+   connections(TCP Listener)
+   Discovery[(Discovery)]
+   fetchRequest(Client Interfaces)
+   Sessions[(SessionManager)]
+   SessionTask[(Peer Session)]
+   State[(State)]
+   StateFetch[(State Fetcher)]
+   connections --> |incoming| Sessions
+   State --> |initiate outgoing| Sessions
+   Discovery --> |update peers| State
+   Sessions --> |spawns| SessionTask
+   SessionTask <--> |handle state requests| State
+   fetchRequest --> |request Headers, Bodies| StateFetch
+   State --> |poll pending requests| StateFetch
+
+```
+        - `handle_tx的mpsc::unbounded_channel`
+
+            Network初始化过程中的unbounded_channel
+        - `NetworkHandle::new`
+- NetworkBuilder中的transaction构建TransactionManager
+
+  TransactionManager中的unbounded_channel
+- NetworkBuilder中的request_handler方法
+
+  NetworkBuilder中的mpsc::channel
+- task扩展重要的任务如p2p txpool和p2p eth request handler 和p2p network task
+
+```Rust
+task_executor.spawn_critical("p2p txpool", txpool);
+task_executor.spawn_critical("p2p eth request handler", eth);
+task_executor.spawn_critical_with_signal("p2p network task", |shutdown| {
+     run_network_until_shutdown(shutdown, network, known_peers_file)
+});
+
+```

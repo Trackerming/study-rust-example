@@ -46,6 +46,36 @@
         -   构建`blockchain_tree`的时候的`with_sync_metrics_tx`
         -   配置`pipeline`的时候的`build_networked_pipeline`
 
+##### Network初始化过程中的unbounded_channel
+
+- 来源：`crates/net/network/src/manager.rs`中
+
+```Rust
+let (to_manager_tx, from_handle_rx) = mpsc::unbounded_channel();
+```
+
+##### PeersManager中的unbounded_channel
+
+- 来源：`crates/net/network/src/peers/manager.rs`中
+
+```Rust
+let (manager_tx, handle_rx) = mpsc::unbounded_channel();
+```
+
+##### TransactionManager中的unbounded_channel
+
+- 来源：`crates/net/network/src/builder.rs`中的transactions方法中
+
+```Rust
+let (tx, rx) = mpsc::unbounded_channel();
+network.set_transactions(tx);
+```
+- 来源：`crates/net/network/src/transactions.rs`中的TransactionManager::new中
+
+```Rust
+let (command_tx, command_rx) = mpsc::unbounded_channel();
+```
+
 ### braodcast::channel
 
 - 来源
@@ -103,3 +133,20 @@ pub struct ValidationTask {
     - 然后`tasks.spawn_blocking`启动一个任务用于`ValidationTask`接收task并执行其run方法；注释的因为它们执行db的loopup致使blocking啥意思？
     - 随后又采用`tasks.spawn_critical_blocking`显示命名transaction-validation-service运行task的run？没看懂这里不是单接收者么，运行两个spawn处理不还是一个一个的来？
     - 然后将发送端的句柄封装成Arc<Mutex<>>结构传递出去；
+
+##### Network中SessionManager的mpsc::channel
+
+- 来源：`crates/net/network/src/session/mod.rs`中
+
+```Rust
+let (pending_sessions_tx, pending_sessions_rx) = mpsc::channel(config.session_event_buffer);
+let (active_session_tx, active_session_rx) = mpsc::channel(config.session_event_buffer);
+```
+
+##### NetworkBuilder中的mpsc::channel
+
+- 来源：`crates/net/network/src/`builder.rs中的request_handler
+
+```Rust
+let (tx, rx) = mpsc::channel(ETH_REQUEST_CHANNEL_CAPACITY);
+```
