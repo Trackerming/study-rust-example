@@ -1,28 +1,26 @@
-use std::collections::HashMap;
-
 // 初始的密钥置换表，意思是逐个按照表对密钥进行位操作？第一个为57意味着原来的57bit的数据移动到第一位，如此类推
 // 表格中没有8 16 24 32 40 48 56这些位，说明校验位被移除了；
-const INIT_KEY_PERMUTATION: [u8; 56] = [
+pub(crate) const INIT_KEY_PERMUTATION: [u8; 56] = [
     57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18, 10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60,
     52, 44, 36, 63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22, 14, 6, 61, 53, 45, 37, 29,
     21, 13, 5, 28, 20, 12, 4,
 ];
 
-const ROUND: usize = 16;
+pub(crate) const ROUND: usize = 16;
 
 // 56位的密钥被分成L和R两个部分（28bit+28bit），根据轮数，两个部分分别移位1或者2，具体如下
 // 比如第一轮左移1位，第三轮左移2位
-const KEY_SHIFT_SIZE: [u8; ROUND] = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1];
+pub(crate) const KEY_SHIFT_SIZE: [u8; ROUND] = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1];
 
 // 子密钥压缩置换，从56位的密钥中选出48位，还是类似初始置换的操作，将14位的值移动到第一位，33位的值移动到了第35位；
 // 没有的数据为9 18 22 25 35 38 43 54，意味着这些位的数据会被丢弃
-const SUB_KEY_PERMUTATION: [u8; 48] = [
+pub(crate) const SUB_KEY_PERMUTATION: [u8; 48] = [
     14, 17, 11, 24, 1, 5, 3, 28, 15, 6, 21, 10, 23, 19, 12, 4, 26, 8, 16, 7, 27, 20, 13, 2, 41, 52,
     31, 37, 47, 55, 30, 40, 51, 45, 33, 48, 44, 49, 39, 56, 34, 53, 46, 42, 50, 36, 29, 32,
 ];
 
 // 初始置换对明文进行处理，打乱明文的次序，这里就可以看出来为什么一次加密的block为64个字节
-const INIT_PLAINTEXT_PERMUTATION: [u8; 64] = [
+pub(crate) const INIT_PLAINTEXT_PERMUTATION: [u8; 64] = [
     58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6,
     64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61,
     53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7,
@@ -31,149 +29,61 @@ const INIT_PLAINTEXT_PERMUTATION: [u8; 64] = [
 // 然后就是每轮子密钥对明文进行处理
 // 明文分为32位L加32位R，还要对32位的R进行扩展置换变成48位，便于后续的异或计算；
 // 扩展的过程位每4bit一组，1 4bit分别向左右扩展
-const EXTEND_R_PLAINTEXT_PERMUTATION: [u8; 48] = [
+pub(crate) const EXTEND_R_PLAINTEXT_PERMUTATION: [u8; 48] = [
     32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9, 8, 9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17, 16, 17, 18,
     19, 20, 21, 20, 21, 22, 23, 24, 25, 24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32, 1,
 ];
 // R与这些密钥48bit进行异或，得到的值用S盒子替换
 // S盒替换过程为：每6个bit一组（b1 b2 b3 b4 b5 b6），b1 b2 (0~3)代表行数 b3 b4 b5 b6（0～15）代表列数
 // 得到的十进制用4位2进制表示，比如 01 1010 => （2行 11列 ）12 = 1100
-const S1: [u8; 64] = [
+pub(crate) const S1: [u8; 64] = [
     14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7, 0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11,
     9, 5, 3, 8, 4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0, 15, 12, 8, 2, 4, 9, 1, 7, 5,
     11, 3, 14, 10, 0, 6, 13,
 ];
-const S2: [u8; 64] = [
+pub(crate) const S2: [u8; 64] = [
     15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10, 3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10,
     6, 9, 11, 5, 0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15, 13, 8, 10, 1, 3, 15, 4, 2,
     11, 6, 7, 12, 0, 5, 14, 9,
 ];
-const S3: [u8; 64] = [
+pub(crate) const S3: [u8; 64] = [
     10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8, 13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14,
     12, 11, 15, 1, 13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7, 1, 10, 13, 0, 6, 9, 8, 7,
     4, 15, 14, 3, 11, 5, 2, 12,
 ];
-const S4: [u8; 64] = [
+pub(crate) const S4: [u8; 64] = [
     7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15, 13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12,
     1, 10, 14, 9, 10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4, 3, 15, 0, 6, 10, 1, 13, 8,
     9, 4, 5, 11, 12, 7, 2, 14,
 ];
-const S5: [u8; 64] = [
+pub(crate) const S5: [u8; 64] = [
     2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9, 14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10,
     3, 9, 8, 6, 4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14, 11, 8, 12, 7, 1, 14, 2, 13,
     6, 15, 0, 9, 10, 4, 5, 3,
 ];
-const S6: [u8; 64] = [
+pub(crate) const S6: [u8; 64] = [
     12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11, 10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14,
     0, 11, 3, 8, 9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6, 4, 3, 2, 12, 9, 5, 15, 10,
     11, 14, 1, 7, 6, 0, 8, 13,
 ];
-const S7: [u8; 64] = [
+pub(crate) const S7: [u8; 64] = [
     4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1, 13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12,
     2, 15, 8, 6, 1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2, 6, 11, 13, 8, 1, 4, 10, 7,
     9, 5, 0, 15, 14, 2, 3, 12,
 ];
-const S8: [u8; 64] = [
+pub(crate) const S8: [u8; 64] = [
     13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7, 1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11,
     0, 14, 9, 2, 7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8, 2, 1, 14, 7, 4, 10, 8, 13,
     15, 12, 9, 0, 3, 5, 6, 11,
 ];
 // P盒替换，通过P盒置换之后与L进行异或操作，得到下一轮的R，下一轮的L就是这一轮的R，经过16轮的操作之后，最后的L和R合并起来进行末置换
-const R_SUB_PLAINTEXT_PERMUTATION: [u8; 32] = [
+pub(crate) const R_SUB_PLAINTEXT_PERMUTATION: [u8; 32] = [
     16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23, 26, 5, 18, 31, 10, 2, 8, 24, 14, 32, 27, 3, 9, 19,
     13, 30, 6, 22, 11, 4, 25,
 ];
 // 末尾置换
-const FINAL_PERMUTATION: [u8; 64] = [
+pub(crate) const FINAL_PERMUTATION: [u8; 64] = [
     40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31, 38, 6, 46, 14, 54, 22, 62, 30,
     37, 5, 45, 13, 53, 21, 61, 29, 36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27,
     34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25,
 ];
-
-struct DES {
-    // 实际起作用的是56个bit，每个字节的最后一位用于奇偶校验，可以忽略，经过密钥置换之后会去掉奇偶校验位
-    key: [u8; 8],
-    // 加解密进行的round次数，DES为16次
-    round: u8,
-    // 用于快速得到对应bit的十进制值
-    bit_map: HashMap<u8, u8>,
-}
-
-impl DES {
-    pub fn new(key: [u8; 8], round: u8) -> Self {
-        DES {
-            key,
-            round,
-            bit_map: HashMap::from([
-                (0, 1),
-                (1, 2),
-                (2, 4),
-                (3, 8),
-                (4, 16),
-                (5, 32),
-                (6, 64),
-                (7, 128),
-            ]),
-        }
-    }
-
-    fn get_index(&self, pos: u8) -> (u8, u8) {
-        (pos / 8, pos % 8)
-    }
-
-    /**
-     * 这里是高位还是低位的排列
-     */
-    fn get_pos_value(&self, origin: &[u8], pos: u8) -> u8 {
-        let (array_index, bit_index) = self.get_index(pos);
-        assert_eq!(array_index < origin.len() as u8, true);
-        let value = origin[array_index as usize];
-        return (value & *self.bit_map.get(&bit_index).unwrap()) << bit_index;
-    }
-
-    fn to_value(&self, array: &mut [u8], pos: u8, origin_pos_value: u8) {
-        let (array_index, bit_index) = self.get_index(pos);
-        let mut value = array[array_index as usize];
-        let mut or_value: u8 = 0;
-        if origin_pos_value == 1 {
-            or_value = *self.bit_map.get(&bit_index).unwrap();
-        }
-        array[array_index as usize] = value | or_value;
-    }
-
-    pub fn replace_bit_by_list(&self, origin: &[u8], table: &[u8]) -> Vec<u8> {
-        //let target_len: usize = table.len()/8;
-        let mut result = [0; 8];
-        // 遍历置换表
-        for (index, pos) in table.iter().enumerate() {
-            // 获取当前表值所对应的位置的值
-            let value_at_pos = self.get_pos_value(&origin[..], *pos);
-            // 反转到当前表值的坐标的位置
-            self.to_value(&mut result[..], index as u8, value_at_pos);
-        }
-        return result.to_vec();
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn list_by_order() {
-        let mut array = SUB_KEY_PERMUTATION.to_vec();
-        array.sort();
-        println!("array: {:?}", array);
-    }
-
-    #[test]
-    fn test_replace_bit_by_list() {
-        let keys: [u8; 8] = [
-            0b10101010, 0b01010101, 0b10101010, 0b01010101, 0b10101010, 0b01010101, 0b10101010,
-            0b01010101,
-        ];
-        let des = DES::new(keys, 16);
-        let result = des.replace_bit_by_list(&des.key, &INIT_KEY_PERMUTATION[..]);
-        println!("result: {:?}", result);
-    }
-}
