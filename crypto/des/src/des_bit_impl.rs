@@ -1,7 +1,7 @@
+use crate::permutation_list::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::DerefMut;
-use crate::permutation_list::*;
 
 struct DES {
     // 实际起作用的是56个bit，每个字节的最后一位用于奇偶校验，可以忽略，经过密钥置换之后会去掉奇偶校验位
@@ -69,14 +69,18 @@ impl DES {
     }
 
     pub fn init_key_permutation(&mut self) {
-        self.replace_bit_by_list(&self.key, &INIT_KEY_PERMUTATION, self.init_permutation.borrow_mut().deref_mut());
+        self.replace_bit_by_list(
+            &self.key,
+            &INIT_KEY_PERMUTATION,
+            self.init_permutation.borrow_mut().deref_mut(),
+        );
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::ops::DerefMut;
     use super::*;
+    use std::ops::DerefMut;
 
     #[test]
     fn list_by_order() {
@@ -92,7 +96,11 @@ mod test {
             0b01010101,
         ];
         let mut des = DES::new(keys, 16);
-        des.replace_bit_by_list(&des.key, &INIT_KEY_PERMUTATION[..], des.init_permutation.borrow_mut().deref_mut());
+        des.replace_bit_by_list(
+            &des.key,
+            &INIT_KEY_PERMUTATION[..],
+            des.init_permutation.borrow_mut().deref_mut(),
+        );
         println!("result: {:?}", des.init_permutation.borrow());
     }
 }
