@@ -5,7 +5,7 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
 };
-use tracing::debug;
+use tracing::{debug, info};
 
 use crate::enclave_agnostic::enclave::{
     connect_to_enclave, shutdown_enclave_stream, EnclaveAddr, EnclaveStream,
@@ -60,6 +60,7 @@ impl RelayTask {
             debug!("recv empty buf from dest connection, quitting comm");
             return Ok(false);
         }
+        info!("handle dest conn rx bytes len: {}", self.dest_rx_bytes.len());
         self.src_conn.write_buf(&mut self.dest_rx_bytes).await?;
         Ok(true)
     }
@@ -69,6 +70,7 @@ impl RelayTask {
             debug!("recv empty buf from src connection, quitting comm");
             return Ok(false);
         }
+        info!("handle src conn rx bytes len: {}", self.src_rx_bytes.len());
         self.dest_conn.write_buf(&mut self.src_rx_bytes).await?;
         Ok(true)
     }
