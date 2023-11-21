@@ -13,7 +13,8 @@ members = [
     "redis-simple",
     "list",
     "algorithms",
-    "./algorithms/algorithms-utils"
+    "./algorithms/algorithms-utils",
+    "socket-relay"
 ]
 
 [workspace.package]

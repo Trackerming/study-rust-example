@@ -1,0 +1,28 @@
+[package]
+name = "socket-relay"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "socket_relay"
+path = "src/lib.rs"
+
+[[bin]]
+name = "socket_relay_bin"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+bytes = "1.4"
+clap = { version = "4.3", features = ["derive"] }
+#tokio-vsock = "0.4"
+tokio = { version = "1.29", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+default = ["mock-vsock"]
+mock-vsock = []
+
