@@ -60,7 +60,10 @@ impl RelayTask {
             debug!("recv empty buf from dest connection, quitting comm");
             return Ok(false);
         }
-        info!("handle dest conn rx bytes len: {}", self.dest_rx_bytes.len());
+        info!(
+            "handle dest conn rx bytes len: {}",
+            self.dest_rx_bytes.len()
+        );
         self.src_conn.write_buf(&mut self.dest_rx_bytes).await?;
         Ok(true)
     }
