@@ -2,7 +2,6 @@
 pub(crate) mod enclave {
     use anyhow::{anyhow, Result};
     use std::net::Shutdown;
-    use tokio::io::AsyncWriteExt;
     use tokio_vsock::{VsockAddr, VsockStream};
 
     pub type EnclaveStream = VsockStream;
