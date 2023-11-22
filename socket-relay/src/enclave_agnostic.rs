@@ -1,6 +1,6 @@
 #[cfg(not(feature = "mock-vsock"))]
 pub(crate) mod enclave {
-    use anyhow::{anyhow, Result};
+    use anyhow::{anyhow, Context, Result};
     use std::net::Shutdown;
     use tokio_vsock::{VsockAddr, VsockListener, VsockStream};
 
@@ -32,7 +32,7 @@ pub(crate) mod enclave {
     }
 
     pub async fn get_listener_server(address: EnclaveAddr) -> Result<EnclaveListener> {
-        VsockListener::bind(address).context("failed to bind vsock listener")
+        VsockListener::bind(address.cid(), address.port()).context("failed to bind vsock listener")
     }
 }
 

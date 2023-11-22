@@ -7,24 +7,47 @@ use tokio::{
 };
 use tracing::{debug, info};
 
-use crate::enclave_agnostic::enclave::{
-    connect_to_enclave, shutdown_enclave_stream, EnclaveAddr, EnclaveStream,
-};
+use crate::enclave_agnostic::enclave::{shutdown_enclave_stream, EnclaveStream};
+
+pub(crate) enum ConnectionStream {
+    EnclaveStreamType(EnclaveStream),
+    TcpStreamType(TcpStream),
+}
 
 pub(crate) struct RelayTask {
-    src_conn: TcpStream,
-    dest_conn: EnclaveStream,
+    src_conn: ConnectionStream,
+    dest_conn: ConnectionStream,
     src_rx_bytes: BytesMut,
     dest_rx_bytes: BytesMut,
 }
 
+async fn shutdown_connect_stream(connect_stream: &mut ConnectionStream) {
+    let _ = match connect_stream {
+        ConnectionStream::EnclaveStreamType(stream) => shutdown_enclave_stream(stream).await,
+        ConnectionStream::TcpStreamType(stream) => stream
+            .shutdown()
+            .await
+            .ok()
+            .expect("shutdown tcp stream failed."),
+    };
+}
+
+async fn read_from_stream(
+    connect_stream: &mut ConnectionStream,
+    buf: &mut BytesMut,
+) -> io::Result<usize> {
+    match connect_stream {
+        ConnectionStream::EnclaveStreamType(stream) => stream.read_buf(buf).await,
+        ConnectionStream::TcpStreamType(stream) => stream.read_buf(buf).await,
+    }
+}
+
 impl RelayTask {
     pub async fn new(
-        src_conn: TcpStream,
-        dest_addr: EnclaveAddr,
+        src_conn: ConnectionStream,
+        dest_conn: ConnectionStream,
         buffer_size: usize,
     ) -> Result<Self> {
-        let dest_conn = connect_to_enclave(dest_addr).await?;
         Ok(Self {
             src_conn,
             dest_conn,
@@ -34,8 +57,8 @@ impl RelayTask {
     }
 
     async fn shutdown(&mut self) {
-        self.src_conn.shutdown().await.ok();
-        shutdown_enclave_stream(&mut self.dest_conn).await;
+        shutdown_connect_stream(&mut self.src_conn).await;
+        shutdown_connect_stream(&mut self.dest_conn).await;
     }
 
     async fn handle_rx_result(&mut self, rx_result: io::Result<usize>) -> Result<bool> {
@@ -64,7 +87,14 @@ impl RelayTask {
             "handle dest conn rx bytes len: {}",
             self.dest_rx_bytes.len()
         );
-        self.src_conn.write_buf(&mut self.dest_rx_bytes).await?;
+        let _ = match &mut self.src_conn {
+            ConnectionStream::TcpStreamType(stream) => {
+                stream.write_buf(&mut self.dest_rx_bytes).await?
+            }
+            ConnectionStream::EnclaveStreamType(stream) => {
+                stream.write_buf(&mut self.dest_rx_bytes).await?
+            }
+        };
         Ok(true)
     }
 
@@ -74,7 +104,14 @@ impl RelayTask {
             return Ok(false);
         }
         info!("handle src conn rx bytes len: {}", self.src_rx_bytes.len());
-        self.dest_conn.write_buf(&mut self.src_rx_bytes).await?;
+        let _ = match &mut self.dest_conn {
+            ConnectionStream::TcpStreamType(stream) => {
+                stream.write_buf(&mut self.src_rx_bytes).await?
+            }
+            ConnectionStream::EnclaveStreamType(stream) => {
+                stream.write_buf(&mut self.src_rx_bytes).await?
+            }
+        };
         Ok(true)
     }
 
@@ -82,8 +119,10 @@ impl RelayTask {
         let mut should_continue = true;
         while should_continue {
             should_continue = tokio::select! {
-                rslt = self.src_conn.read_buf(&mut self.src_rx_bytes) => self.handle_src_conn_rx(rslt).await,
-                result = self.dest_conn.read_buf(&mut self.dest_rx_bytes) => self.handle_dest_conn_rx(result).await,
+                result = read_from_stream(&mut self.src_conn, &mut self.src_rx_bytes) => self.handle_src_conn_rx(result).await,
+                result = read_from_stream(&mut self.dest_conn, &mut self.dest_rx_bytes) => self.handle_dest_conn_rx(result).await,
+                // rslt =  self.src_conn.read_buf(&mut self.src_rx_bytes) => self.handle_src_conn_rx(rslt).await,
+                //result = self.dest_conn.read_buf(&mut self.dest_rx_bytes) => self.handle_dest_conn_rx(result).await,
             }?;
         }
         Ok(())
