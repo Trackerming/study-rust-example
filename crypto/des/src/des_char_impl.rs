@@ -67,7 +67,7 @@ impl DESChar {
                 left_clone.clone().borrow().to_vec(),
                 right_clone.clone().borrow().to_vec(),
             ]
-            .concat();
+                .concat();
             self.sub_keys.push(permutation_by_table(
                 &combined,
                 &SUB_KEY_PERMUTATION,
@@ -93,9 +93,10 @@ impl DESChar {
     }
 
     // S盒子变换
-    fn s_box_convert(&self, input: &[u8], s_box: &[u8; 64]) -> [u8; 32] {
+    fn s_box_convert(&self, input: &[u8]) -> [u8; 32] {
         let mut result: [u8; 32] = [0; 32];
         for i in 0..8 {
+            let s_box = &S[i];
             let current_input = &input[(i * 6)..((i + 1) * 6)];
             // 取出input的坐标，bit1和2代表行 b3～b6代表列
             let rows = current_input[0] << 1 | current_input[5];
@@ -106,10 +107,15 @@ impl DESChar {
             let index = (rows * 16 + cols) as usize;
             assert!(index < 64);
             let value = s_box[index];
-            let rslt: Vec<u8> = format!("{:b}", value)
+            let mut rslt: Vec<u8> = format!("{:b}", value)
                 .chars()
                 .map(|char| char.to_digit(2).unwrap() as u8)
                 .collect();
+            // 填充0在首位不足4bytes的时候
+            while rslt.len() < 4 {
+                rslt.push(0);
+                rslt.rotate_right(1);
+            }
             result[(i * 4)..((i + 1) * 4)].clone_from_slice(&rslt);
         }
         return result;
@@ -137,7 +143,7 @@ impl DESChar {
             .map(|(a, b)| (*a) ^ (*b))
             .collect();
         // S盒变换
-        let s_result = self.s_box_convert(&mut xor_with_key, &S[current_round]);
+        let s_result = self.s_box_convert(&mut xor_with_key);
         // P盒变换
         let mut p_result = self.p_box_permutation(&s_result);
         current_right = p_result
@@ -149,7 +155,8 @@ impl DESChar {
         return current_right;
     }
 
-    fn round_handle(&self, init_perm_plaintext: &mut [u8; 64]) {
+    fn round_handle(&self, init_perm_plaintext: &mut [u8]) -> Vec<u8> {
+        assert_eq!(init_perm_plaintext.len(), 64);
         let (left, right) = init_perm_plaintext.split_at_mut(32);
         let mut left_clone = Arc::new(RefCell::new(left.to_vec()));
         let mut right_clone = Arc::new(RefCell::new(right.to_vec()));
@@ -164,13 +171,24 @@ impl DESChar {
             left_clone
                 .clone()
                 .borrow_mut()
-                .clone_from_slice(left_clone.clone().borrow().as_slice());
+                .clone_from_slice(right_clone.clone().borrow().as_slice());
             right_clone
                 .clone()
                 .borrow_mut()
                 .clone_from_slice(current_r.as_slice());
         }
+        println!("left: {:?}, len: {}", left_clone.clone().borrow(), left_clone.clone().borrow().len());
+        println!("right: {:?}, len: {}", right_clone.clone().borrow(), right_clone.clone().borrow().len());
         // 合并L和R并进行最终的逆变换
+        let array = [left_clone.borrow().as_slice(), right_clone.borrow().as_slice()].concat();
+        return array;
+    }
+
+    pub fn encrypt(&self, plaintext: &str) -> Vec<u8> {
+        let mut init_per_plaintext = self.plaintext_init_permutation(plaintext);
+        let round_handle_text = self.round_handle(&mut init_per_plaintext);
+        assert_eq!(round_handle_text.len(), 64);
+        permutation_by_table(&round_handle_text, &FINAL_PERMUTATION, 64, 64)
     }
 }
 
@@ -197,8 +215,9 @@ mod test {
             println!("{:?}", sub_key);
         }
         let plaintext = "0000000100100011010001010110011110001001101010111100110111101111";
-        let init_permutation_plaintext = des_char.plaintext_init_permutation(plaintext);
+        let mut init_permutation_plaintext = des_char.plaintext_init_permutation(plaintext);
         println!("{:?}", init_permutation_plaintext);
+        let _ = des_char.round_handle(&mut init_permutation_plaintext[..]);
         let mut array = [
             32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9, 8, 9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17, 16,
             17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25, 24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32,
@@ -210,6 +229,18 @@ mod test {
     }
 
     #[test]
+    fn test_encrypt(){
+        let mut des_char = DESChar::new(
+            "0001001100110100010101110111100110011011101111001101111111110001".to_string(),
+        );
+        des_char.init_permutation_key();
+        des_char.sub_key_permutation();
+        let plaintext = "0000000100100011010001010110011110001001101010111100110111101111";
+        let cipher = des_char.encrypt(plaintext);
+        println!("cipher: {:?}", cipher);
+    }
+
+    #[test]
     fn test_s_box() {
         let mut des_char = DESChar::new(
             "0001001100110100010101110111100110011011101111001101111111110001".to_string(),
@@ -218,7 +249,7 @@ mod test {
             0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1,
             0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0,
         ];
-        let result = des_char.s_box_convert(&input, &S[0]);
+        let result = des_char.s_box_convert(&input);
         println!("{:?}", result);
         println!("{}", format!("{:b}", 12));
     }
