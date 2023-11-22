@@ -14,7 +14,7 @@ pub(crate) mod enclave {
         let mut address_split = address.split(':');
         let cid = address_split
             .next()
-            .ok_or(anyhow!("missing cid  from vsock addr: {address}"))?
+            .ok_or(anyhow!("missing cid from vsock addr: {address}"))?
             .parse()?;
         let port = address_split
             .next()

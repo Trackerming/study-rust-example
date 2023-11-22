@@ -17,6 +17,7 @@ const server = http.createServer((req, res) => {
 });
 
 const port = 9443;
-server.listen(port, () => {
+const host = "127.0.0.1";
+server.listen(port, host, () => {
     console.log(`Server listening on port ${port}`);
 });

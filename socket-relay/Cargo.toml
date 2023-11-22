@@ -17,12 +17,12 @@ path = "src/main.rs"
 anyhow = "1.0"
 bytes = "1.4"
 clap = { version = "4.3", features = ["derive"] }
-#tokio-vsock = "0.4"
+tokio-vsock = "0.4"
 tokio = { version = "1.29", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [features]
-default = ["mock-vsock"]
+default = []
 mock-vsock = []
 

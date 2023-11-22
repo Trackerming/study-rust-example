@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use clap::{command, Parser};
-use std::net::SocketAddr;
-use std::str::FromStr;
-use std::sync::Arc;
-use tokio::net::TcpStream;
-use tokio::{net::TcpListener, sync::Semaphore};
+use std::{net::SocketAddr, str::FromStr, sync::Arc};
+use tokio::{
+    net::{TcpListener, TcpStream},
+    sync::Semaphore,
+};
 use tracing::{error, info};
 
 use crate::enclave_agnostic::enclave::{
@@ -37,7 +37,7 @@ pub struct Cli {
 
 pub async fn listen_vsock(args: &Cli) -> Result<()> {
     let address = parse_enclave_addr(&args.vsock_address)?;
-    let enclave_listener = get_listener_server(address).await?;
+    let mut enclave_listener = get_listener_server(address).await?;
     let destination_address =
         SocketAddr::from_str(&args.tcp_address).context("parse tcp address failed.")?;
     let conn_count_semaphore = Arc::new(Semaphore::new(args.max_concurrent_connections));
@@ -52,13 +52,16 @@ pub async fn listen_vsock(args: &Cli) -> Result<()> {
                 // for the duration of the connection.
                 tokio::spawn(async move {
                     let result = async {
+                        info!("before connect to tcp_stream: {:?}", destination_address);
                         let tcp_stream = TcpStream::connect(destination_address).await?;
+                        info!("after connect to tcp_stream: {:?}", destination_address);
                         let task = RelayTask::new(
                             ConnectionStream::EnclaveStreamType(enclave_stream),
                             ConnectionStream::TcpStreamType(tcp_stream),
                             buf_size,
                         )
                         .await?;
+                        info!("new task created.");
                         task.run().await
                     };
                     if let Err(e) = result.await {
