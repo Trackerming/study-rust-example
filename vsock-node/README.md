@@ -23,7 +23,7 @@
 ```shell
 docker build -t testenclave:v1 .
 sudo nitro-cli build-enclave --docker-uri testenclave:v1 --output-file testenclave.eif
-sudo nitro-cli run-enclave --eif-path testenclave.eif --memory 4096 --cpu-count 2 --debug-mode
+sudo nitro-cli run-enclave --eif-path testenclave.eif --memory 4096 --cpu-count 2  --enclave-id 16 --debug-mode
 nitro-cli console --enclave-id i-0d45180d8ac4256cb-enc18b41ce18e55b8d
 ./vsock-node tcp_to_vsock_server --cid 17 --port 8686 --tcpPort 9332 --host "127.0.0.1"
 ./vsock-node tcp_client --tcpPort 9332 --host "127.0.0.1"

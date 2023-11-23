@@ -9,11 +9,13 @@ use tracing::{debug, info};
 
 use crate::enclave_agnostic::enclave::{shutdown_enclave_stream, EnclaveStream};
 
+#[derive(Debug)]
 pub(crate) enum ConnectionStream {
     EnclaveStreamType(EnclaveStream),
     TcpStreamType(TcpStream),
 }
 
+#[derive(Debug)]
 pub(crate) struct RelayTask {
     src_conn: ConnectionStream,
     dest_conn: ConnectionStream,
@@ -57,6 +59,7 @@ impl RelayTask {
     }
 
     async fn shutdown(&mut self) {
+        debug!("begin shutdown...");
         shutdown_connect_stream(&mut self.src_conn).await;
         shutdown_connect_stream(&mut self.dest_conn).await;
     }
@@ -117,12 +120,17 @@ impl RelayTask {
 
     pub async fn run(mut self) -> Result<()> {
         let mut should_continue = true;
+        debug!("run task");
         while should_continue {
             should_continue = tokio::select! {
-                result = read_from_stream(&mut self.src_conn, &mut self.src_rx_bytes) => self.handle_src_conn_rx(result).await,
-                result = read_from_stream(&mut self.dest_conn, &mut self.dest_rx_bytes) => self.handle_dest_conn_rx(result).await,
-                // rslt =  self.src_conn.read_buf(&mut self.src_rx_bytes) => self.handle_src_conn_rx(rslt).await,
-                //result = self.dest_conn.read_buf(&mut self.dest_rx_bytes) => self.handle_dest_conn_rx(result).await,
+                result = read_from_stream(&mut self.src_conn, &mut self.src_rx_bytes) => {
+                    debug!("read from src_conn stream, {:?}", self.src_conn);
+                    self.handle_src_conn_rx(result).await
+                },
+                result = read_from_stream(&mut self.dest_conn, &mut self.dest_rx_bytes) => {
+                    debug!("read from src_conn stream {:?}", self.dest_conn);
+                    self.handle_dest_conn_rx(result).await
+                },
             }?;
         }
         Ok(())

@@ -5,7 +5,7 @@ use tokio::{
     net::{TcpListener, TcpStream},
     sync::Semaphore,
 };
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::enclave_agnostic::enclave::{
     connect_to_enclave, get_listener_server, parse_enclave_addr, DEFAULT_DEST_ADDR,
@@ -48,13 +48,10 @@ pub async fn listen_vsock(args: &Cli) -> Result<()> {
             Ok((enclave_stream, _)) => {
                 let buf_size = args.buffer_size;
 
-                // Spawn new task to handle connection, task will now own semaphore
-                // for the duration of the connection.
                 tokio::spawn(async move {
                     let result = async {
-                        info!("before connect to tcp_stream: {:?}", destination_address);
+                        debug!("Tcp stream start connect {:?}", destination_address);
                         let tcp_stream = TcpStream::connect(destination_address).await?;
-                        info!("after connect to tcp_stream: {:?}", destination_address);
                         let task = RelayTask::new(
                             ConnectionStream::EnclaveStreamType(enclave_stream),
                             ConnectionStream::TcpStreamType(tcp_stream),
@@ -90,10 +87,9 @@ pub async fn listen_tcp(args: &Cli) -> Result<()> {
             Ok((tcp_stream, _)) => {
                 let buf_size = args.buffer_size;
 
-                // Spawn new task to handle connection, task will now own semaphore
-                // for the duration of the connection.
                 tokio::spawn(async move {
                     let result = async {
+                        debug!("start connect enclave {:?}", destination_address);
                         let enclave_stream = connect_to_enclave(destination_address).await?;
                         let task = RelayTask::new(
                             ConnectionStream::TcpStreamType(tcp_stream),
@@ -101,6 +97,7 @@ pub async fn listen_tcp(args: &Cli) -> Result<()> {
                             buf_size,
                         )
                         .await?;
+                        info!("new task created.");
                         task.run().await
                     };
                     if let Err(e) = result.await {
