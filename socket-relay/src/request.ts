@@ -1,18 +1,7 @@
 import http from 'node:http';
 import {RequestOptions} from "http";
 
-(async function (port: number, host: string) {
-    const body = {a: 100, b: "100"};
-    let options: RequestOptions = {
-        hostname: host,
-        port: port,
-        path: '/path',
-        method: 'POST',
-    };
-    options.headers = {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(JSON.stringify(body)),
-    };
+async function request(options: RequestOptions, body: string) {
     return new Promise<string>((resolve, reject) => {
         const req = http.request(options, (res) => {
             let data = '';
@@ -29,7 +18,24 @@ import {RequestOptions} from "http";
             console.error(errMsg);
             reject(errMsg);
         });
-        req.write(JSON.stringify(body));
+        req.write(body);
         req.end();
     })
-})(8443, '127.0.0.1')
+}
+
+(async function (port: number, host: string, loopTimes: number) {
+    const body = {a: 100, b: "100"};
+    let options: RequestOptions = {
+        hostname: host,
+        port: port,
+        path: '/path',
+        method: 'POST',
+    };
+    options.headers = {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(JSON.stringify(body)),
+    };
+    for (let i = 0; i < loopTimes; i++) {
+        await request(options, JSON.stringify(body));
+    }
+})(8443, '127.0.0.1', 1024)

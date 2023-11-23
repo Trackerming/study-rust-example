@@ -128,7 +128,7 @@ impl RelayTask {
                     self.handle_src_conn_rx(result).await
                 },
                 result = read_from_stream(&mut self.dest_conn, &mut self.dest_rx_bytes) => {
-                    debug!("read from src_conn stream {:?}", self.dest_conn);
+                    debug!("read from dest_conn stream {:?}", self.dest_conn);
                     self.handle_dest_conn_rx(result).await
                 },
             }?;

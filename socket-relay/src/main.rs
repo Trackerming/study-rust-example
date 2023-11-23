@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::builder()
-                .with_default_directive(LevelFilter::DEBUG.into())
+                .with_default_directive(LevelFilter::INFO.into())
                 .from_env()
                 .expect("should create tracing subscribe env filter"),
         )
