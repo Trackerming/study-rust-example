@@ -14,8 +14,10 @@ members = [
     "list",
     "algorithms",
     "./algorithms/algorithms-utils",
-    "socket-relay"
+    "socket-relay",
+    "games"
 ]
+resolver = "2"
 
 [workspace.package]
 name = "study-rust-example"
