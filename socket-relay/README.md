@@ -4,16 +4,16 @@
 
 - 参考socat工具的功能，具体关于socat的使用详见MPC-DOC中的vsock的ts的验证中；
 - 即在enclave和enclave所在父实例上添加一层代理；将外部的TCP请求转换为vsock的socket，通过vsock通信到enclave 内部转换为TCP的实现；
-  - 所以大致的流程是tcp转vsock，vsock转tcp到达enclave的内部，然后响应数据，socat的过程如下
+    - 所以大致的流程是tcp转vsock，vsock转tcp到达enclave的内部，然后响应数据，socat的过程如下
 
-      - enclave内部的代理如下
+        - enclave内部的代理如下
 
-    ```shell
-    # 代理，将传入的vsock连接转发到本地8888端口
-    socat VSOCK-LISTEN:8001,fork,reuseaddr TCP:127.0.0.1:8888 &
-    # 将本地的tcp请求转发连接到父实例（vsock为3）上的8002端口
-    socat TCP-LISTEN:443,fork,reuseaddr VSOCK-CONNECT:3:8002
-    ```
+      ```shell
+      # 代理，将传入的vsock连接转发到本地8888端口
+      socat VSOCK-LISTEN:8001,fork,reuseaddr TCP:127.0.0.1:8888 &
+      # 将本地的tcp请求转发连接到父实例（vsock为3）上的8002端口
+      socat TCP-LISTEN:443,fork,reuseaddr VSOCK-CONNECT:3:8002
+      ```
 
 - 父亲实例上的代理如下
 
@@ -31,6 +31,8 @@
     - 由于vsock测试的不便，所以在代码层面设置一个mock-vsock的feature，对功能的接口上与vsock一致，在本地开发测试的时候可以开启mock-vsock的feature，这样转换的过程还是tcp到tcp的协议；
     -
   由于enclave内部的proxy和ec2实例上的stream转换方向不同，所以参数有tcp-to-vsock的设置，显示设置说明监听在tcp上，转换为vsock；反正则对应enclave中的应用，监听在vsock上，转换为tcp；
+- 简易示图如下
+  ![](./images/network-relay示意简图.png)
 
 ##### 使用方法
 
