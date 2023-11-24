@@ -76,6 +76,20 @@ network.set_transactions(tx);
 let (command_tx, command_rx) = mpsc::unbounded_channel();
 ```
 
+##### PayloadService中的unbounded_channel
+- 来源：`crates/payload/builder/src/service.rs`中的PayloadBuilderService::new中
+
+```rust
+let (service_tx, command_rx) = mpsc::unbounded_channel();
+```
+
+##### 共识引擎使用的unbounded_channel
+- 来源：`bin/reth/src/node/mod.rs`中的配置共识引擎的时候使用
+
+```rust
+let (consensus_engine_tx, consensus_engine_rx) = unbounded_channel();
+```
+
 ### braodcast::channel
 
 - 来源
