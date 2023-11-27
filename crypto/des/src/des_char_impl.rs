@@ -132,14 +132,20 @@ impl DESChar {
         left: &Vec<u8>,
         prev_right: &mut Vec<u8>,
         current_round: usize,
+        is_encrypt: bool,
     ) -> Vec<u8> {
         let mut current_right: Vec<u8> = vec![];
         // 对32位的right进行E扩展变成48位
         let right = self.extend_right(prev_right);
         // 与当前轮的密钥进行异或
+        let index = if is_encrypt {
+            current_round
+        } else {
+            15 - current_round
+        };
         let mut xor_with_key: Vec<u8> = right
             .iter()
-            .zip(self.sub_keys[current_round].iter())
+            .zip(self.sub_keys[index].iter())
             .map(|(a, b)| (*a) ^ (*b))
             .collect();
         // S盒变换
@@ -155,7 +161,7 @@ impl DESChar {
         return current_right;
     }
 
-    fn round_handle(&self, init_perm_plaintext: &mut [u8]) -> Vec<u8> {
+    fn round_handle(&self, init_perm_plaintext: &mut [u8], is_encrypt: bool) -> Vec<u8> {
         assert_eq!(init_perm_plaintext.len(), 64);
         let (left, right) = init_perm_plaintext.split_at_mut(32);
         let mut left_clone = Arc::new(RefCell::new(left.to_vec()));
@@ -166,6 +172,7 @@ impl DESChar {
                 left_clone.clone().borrow().deref(),
                 right_clone.clone().borrow_mut().deref_mut(),
                 i,
+                is_encrypt
             );
             // 上一轮的R变为这一轮的L
             left_clone
@@ -186,7 +193,14 @@ impl DESChar {
 
     pub fn encrypt(&self, plaintext: &str) -> Vec<u8> {
         let mut init_per_plaintext = self.plaintext_init_permutation(plaintext);
-        let round_handle_text = self.round_handle(&mut init_per_plaintext);
+        let round_handle_text = self.round_handle(&mut init_per_plaintext, true);
+        assert_eq!(round_handle_text.len(), 64);
+        permutation_by_table(&round_handle_text, &FINAL_PERMUTATION, 64, 64)
+    }
+
+    pub fn decrypt(&self, cipher: &str) -> Vec<u8> {
+        let mut init_per_cipher = self.plaintext_init_permutation(cipher);
+        let round_handle_text = self.round_handle(&mut init_per_cipher, false);
         assert_eq!(round_handle_text.len(), 64);
         permutation_by_table(&round_handle_text, &FINAL_PERMUTATION, 64, 64)
     }
@@ -217,7 +231,7 @@ mod test {
         let plaintext = "0000000100100011010001010110011110001001101010111100110111101111";
         let mut init_permutation_plaintext = des_char.plaintext_init_permutation(plaintext);
         println!("{:?}", init_permutation_plaintext);
-        let _ = des_char.round_handle(&mut init_permutation_plaintext[..]);
+        let _ = des_char.round_handle(&mut init_permutation_plaintext[..], true);
         let mut array = [
             32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9, 8, 9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17, 16,
             17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25, 24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32,
@@ -238,6 +252,10 @@ mod test {
         let plaintext = "0000000100100011010001010110011110001001101010111100110111101111";
         let cipher = des_char.encrypt(plaintext);
         println!("cipher: {:?}", cipher);
+        let cipher_str:String = cipher.iter().map(|&bit| char::from(bit+b'0')).collect();
+        println!("cipher_str: {:?}", cipher_str);
+        let result = des_char.decrypt(&cipher_str);
+        println!("result: {:?}", result);
     }
 
     #[test]
