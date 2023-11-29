@@ -36,6 +36,11 @@ async function request(options: RequestOptions, body: string) {
         'Content-Length': Buffer.byteLength(JSON.stringify(body)),
     };
     for (let i = 0; i < loopTimes; i++) {
+        if (i % 2 == 0) {
+            options.path = '/path'
+        } else {
+            options.path = '/path1'
+        }
         await request(options, JSON.stringify(body));
     }
 })(8443, '127.0.0.1', 1024)

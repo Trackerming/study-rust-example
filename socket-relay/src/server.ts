@@ -1,6 +1,7 @@
-import http from 'http';
+//import http from 'http';
+import express from 'express';
 
-const server = http.createServer((req, res) => {
+/*const server = http.createServer((req, res) => {
     let data = '';
     req.setEncoding('utf8');
     req.on('data', (chunk) => {
@@ -14,10 +15,26 @@ const server = http.createServer((req, res) => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('Hello, World!\n' + data);
     })
-});
+});*/
 
 const port = 9443;
 const host = "127.0.0.1";
-server.listen(port, host, () => {
+/*server.listen(port, host, () => {
     console.log(`Server listening on address ${JSON.stringify(server.address())}`);
-});
+});*/
+
+const app = express();
+let num = 0;
+app.post('/path', (req, res) => {
+    console.log(req.body);
+    num += 1;
+    res.send(`res num: ${num}, body: ${req.body}`);
+})
+
+app.post('/path1', (req, res) => {
+    console.log(req.body);
+    num += 1;
+    res.send(`res num: ${num}, body: ${req.body}`);
+})
+
+app.listen(port, host);
