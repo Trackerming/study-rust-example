@@ -24,7 +24,7 @@ async function request(options: RequestOptions, body: string) {
 }
 
 (async function (port: number, host: string, loopTimes: number) {
-    const body = {a: 100, b: "100"};
+    let body = {a: 100, b: "100", c: {d: '10001'}};
     let options: RequestOptions = {
         hostname: host,
         port: port,
@@ -37,9 +37,10 @@ async function request(options: RequestOptions, body: string) {
     };
     for (let i = 0; i < loopTimes; i++) {
         if (i % 2 == 0) {
-            options.path = '/path'
+            options.path = '/path';
         } else {
             options.path = '/path1'
+            body.c.d = '10002' + i;
         }
         await request(options, JSON.stringify(body));
     }
