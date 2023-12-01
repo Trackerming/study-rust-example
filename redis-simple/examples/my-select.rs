@@ -1,6 +1,7 @@
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use std::time::Duration;
 use tokio::sync::oneshot;
 
 #[tokio::main]
@@ -12,7 +13,13 @@ async fn main() {
 async fn my_select() {
     let (tx1, rx1) = oneshot::channel();
     let (tx2, rx2) = oneshot::channel();
-    tx1.send("hello tx1").unwrap();
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(1));
+        tx1.send("hello tx1").unwrap();
+    });
+    std::thread::spawn(move || {
+        tx2.send("hello tx2").unwrap();
+    });
     MySelect { rx1, rx2 }.await;
 }
 
@@ -46,7 +53,7 @@ async fn action(input: Option<i32>) -> Option<String> {
 }
 
 async fn loop_select_example() {
-    let (mut tx, mut rx) = tokio::sync::mpsc::channel(128);
+    let (tx, mut rx) = tokio::sync::mpsc::channel(128);
     let mut done = false;
     let operation = action(None);
     tokio::pin!(operation);

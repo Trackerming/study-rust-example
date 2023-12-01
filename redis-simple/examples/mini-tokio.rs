@@ -42,6 +42,8 @@ impl Future for Delay {
                     thread::sleep(when - now);
                 }
                 let waker = waker.lock().unwrap();
+                // 主要是看这个干了些啥，第二次自己唤醒
+                println!("waker by ref in other thread of this future.");
                 waker.wake_by_ref();
             });
         }
@@ -49,6 +51,7 @@ impl Future for Delay {
             println!("delay task run: hello, async");
             Poll::Ready("done")
         } else {
+            println!("delay task run: pending...");
             Poll::Pending
         }
     }
@@ -74,6 +77,8 @@ impl ArcWake for Task {
 impl Task {
     fn poll(self: Arc<Self>) {
         let waker = task::waker(self.clone());
+        // 第一次执行的时候主动拉取任务
+        println!("task poll:");
         let mut cx = Context::from_waker(&waker);
         let mut future = self.future.try_lock().unwrap();
         let _ = future.as_mut().poll(&mut cx);
