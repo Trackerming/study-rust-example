@@ -33,7 +33,7 @@ impl Wallet {
     pub fn get_address(&self, path_str: &str) -> Address {
         let public_key_str = self.get_public_key(path_str);
         let pub_key = PublicKey::from_str(&public_key_str).expect("public key from str error.");
-        Address::p2pkh(&pub_key, Network::Bitcoin)
+        Address::p2pkh(&pub_key, self.network)
     }
 }
 
@@ -45,7 +45,7 @@ mod test {
         let derive_priv_key = "tprv8foYNoo89nJXximCx8r5e8ZQEjK7UGW6nfiRHuaC6brhFohfUgja127af12849Q8ajLre5H6dGedA2ySTq1kofexsf59HcNBn9h5byxZ8X9";
         let derive_pub_key = "tpubDCe9Vgbq8BvVPodubsSKHbRRTvaUPtpEirbt8T1hwSKhB4NXtnda4cTqQDEM5mQrow5YUX3hf3FM3G8eN3wtUUQELJPUo6eUzL3C9r7kgNb";
         let path = "m/1/0";
-        let wallet = Wallet::new(derive_priv_key, derive_pub_key, "Testnet");
+        let wallet = Wallet::new(derive_priv_key, derive_pub_key, "testnet");
         let address = wallet.get_address(path);
         println!("address: {:?}", address);
         assert_eq!(address.to_string(), "n1FZyhk4fDzuLHhLbK5svsvzHzwcZJJz63");
