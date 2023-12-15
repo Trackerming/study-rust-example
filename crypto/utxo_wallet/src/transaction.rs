@@ -1,10 +1,14 @@
-use crate::wallet::SignInfo;
+use crate::wallet::{SignInfo, Wallet};
 use bitcoin::absolute::LockTime;
+use bitcoin::psbt::PsbtSighashType;
+use bitcoin::secp256k1::{Message, Secp256k1};
+use bitcoin::sighash::SighashCache;
 use bitcoin::transaction::Version;
 use bitcoin::{
-    Address, Amount, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf, Sequence,
+    Transaction, TxIn, TxOut, Txid, Witness,
 };
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 
 pub struct Tx {
@@ -31,13 +35,14 @@ impl Tx {
     }
 
     pub fn add_input(&mut self, prev_out: OutPoint, satoshi: u64) -> usize {
-        self.inputs.push(TxIn {
+        let tx_in = TxIn {
             previous_output: prev_out,
             sequence: Sequence::ENABLE_LOCKTIME_NO_RBF,
             // 签名之后填充完整
             script_sig: ScriptBuf::default(),
             witness: Witness::default(),
-        });
+        };
+        self.inputs.push(tx_in);
         self.input_sum_satoshi = self.input_sum_satoshi + satoshi;
         return self.inputs.len() - 1;
     }
@@ -82,6 +87,59 @@ impl Tx {
             output: self.outputs.to_vec(),
         }
     }
+
+    pub fn signing_keys(&self, wallet: &Wallet) -> BTreeMap<bitcoin::PublicKey, PrivateKey> {
+        let mut key_map = BTreeMap::new();
+        for (_index, info) in self.input_sign_map.iter() {
+            let key_pair = wallet.get_key_pair(String::from(&info.path));
+            key_map.insert(key_pair.0, key_pair.1);
+        }
+        key_map
+    }
+
+    pub fn psbt_workflow(&self, wallet: &Wallet) {
+        // step1: create psbt
+        let mut psbt = Psbt::from_unsigned_tx(self.to_unsigned_tx()).expect("create psbt faild.");
+        // step2: sign
+        let sig_type = PsbtSighashType::from_str("SIGHASH_ALL").unwrap();
+        for input in psbt.inputs.iter_mut() {
+            input.sighash_type = Some(sig_type);
+        }
+        let secp = Secp256k1::new();
+        let keys = self.signing_keys(wallet);
+        let sign_result = psbt.sign(&keys, &secp).expect("sign failed");
+        println!("psbt: {:?}, \nsigningKeys: {:?}", psbt, sign_result);
+        // finalize
+        todo!();
+    }
+
+    pub fn sign_with_key(&self, wallet: &Wallet) {
+        let mut tx = self.to_unsigned_tx();
+        let secp = Secp256k1::new();
+        //let mut tx;
+        let sighash_type = EcdsaSighashType::All;
+        for (index, input) in self.inputs.iter().enumerate() {
+            let mut sighasher = SighashCache::new(&mut tx);
+            let sign_info = self
+                .input_sign_map
+                .get(&index)
+                .expect("sign_with_key get signing info");
+            let script = sign_info.address.script_pubkey();
+            let sighash = sighasher
+                .legacy_signature_hash(index, &script, sighash_type as u32)
+                .expect("get sig hash");
+            let (_, _, private_key) = wallet.get_key_pair(String::from(&sign_info.path));
+            let msg = Message::from(sighash);
+            let sig = secp.sign_ecdsa(&msg, &private_key);
+            let signature = bitcoin::ecdsa::Signature {
+                sig,
+                hash_ty: EcdsaSighashType::All,
+            };
+            let pk = private_key.public_key(&secp);
+            tx = (*sighasher.into_transaction()).clone().into();
+        }
+        println!("{:#?}", tx);
+    }
 }
 
 pub struct BaseElem {
@@ -109,5 +167,58 @@ impl<'a> Utxo<'a> {
             },
             path,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    /*
+     *   coin: 'btc',
+     *   network: 'testnet',
+     *   passpharse: 'abc123',
+     *   mnemonic: 'can equal feed rather divide uncle color bright city segment paddle zone',
+     *   hdRoot: 'tprv8ZgxMBicQKsPdDAwStDtyTJhrCUjkXk4gUyRkRc5b8ksR8B7gW9wtqd3oUdncXKpi2Zcdavs1rxTUtbwYQdtfBGaRQBSF1x5fXUZvT1wRjS',
+     *   derivePrivateKey: 'tprv8ffZXFj3XabUqnYmtEbZfpdHkujkUhqtBeEcxpLkFW6yDU5LbWdoyL681QcTMmwVxv7UMosJQ92wDZBEpuUyTRw5ytrG5adgmMLSfhEZHyB',
+     *   derivePublicKey: 'tpubDCMbffmHfxH9jFaZmtGA5EHQKwFge32nkwqQFLP3fmuN3xL7DuTQ9phzBZFHBmbW6VJTLiuVZhL5Mj6yCSbu8f7YghYzCAd6tgJAMHvBN9R',
+     */
+    #[test]
+    fn test() {
+        let mut utxos: Vec<Utxo> = vec![];
+        // m/1/0
+        utxos.push(Utxo::new(
+            "03862a49e9d3abcad879a8d78361a88d82358fc495a4409274579154c199e259",
+            1,
+            1795137,
+            "mnbh2vywAhGsbKUMHTAMT2CBbgtMF27Ch5",
+            "m/1/0",
+        ));
+        let mut base_elems = vec![];
+        // m/0/2
+        base_elems.push(BaseElem {
+            satoshi: 1000000,
+            address: Address::from_str("mp1Rd4hSjKN4BQVKtY4SRg4DKBKN4QPDbw")
+                .expect("address from str")
+                .assume_checked(),
+        });
+        // m/0/1
+        base_elems.push(BaseElem {
+            satoshi: 90000,
+            address: Address::from_str("mnApsMhv1LhaYs17xrshXCtFATfnroFWYp")
+                .expect("address from str")
+                .assume_checked(),
+        });
+        // m/0/1
+        base_elems.push(BaseElem {
+            satoshi: 700000,
+            address: Address::from_str("mnApsMhv1LhaYs17xrshXCtFATfnroFWYp")
+                .expect("address from str")
+                .assume_checked(),
+        });
+        let wallet = Wallet::new("tprv8ffZXFj3XabUqnYmtEbZfpdHkujkUhqtBeEcxpLkFW6yDU5LbWdoyL681QcTMmwVxv7UMosJQ92wDZBEpuUyTRw5ytrG5adgmMLSfhEZHyB", "tpubDCMbffmHfxH9jFaZmtGA5EHQKwFge32nkwqQFLP3fmuN3xL7DuTQ9phzBZFHBmbW6VJTLiuVZhL5Mj6yCSbu8f7YghYzCAd6tgJAMHvBN9R", "testnet");
+        let mut tx = Tx::new(Version::ONE, LockTime::ZERO);
+        tx.add_inputs(utxos);
+        tx.add_outputs(base_elems);
+        tx.sign_with_key(&wallet);
     }
 }
