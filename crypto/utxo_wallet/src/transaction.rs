@@ -4,12 +4,10 @@ use bitcoin::psbt::PsbtSighashType;
 use bitcoin::secp256k1::{Message, Secp256k1};
 use bitcoin::sighash::SighashCache;
 use bitcoin::transaction::Version;
-use bitcoin::{
-    Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf, Sequence,
-    Transaction, TxIn, TxOut, Txid, Witness,
-};
+use bitcoin::{Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness, sighash};
 use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
+use bitcoin::script::Builder;
 
 pub struct Tx {
     inputs: Vec<TxIn>,
@@ -118,6 +116,7 @@ impl Tx {
         let secp = Secp256k1::new();
         //let mut tx;
         let sighash_type = EcdsaSighashType::All;
+        let mut input_ptr: *mut TxIn = &mut tx.input[0];
         for (index, input) in self.inputs.iter().enumerate() {
             let mut sighasher = SighashCache::new(&mut tx);
             let sign_info = self
@@ -135,7 +134,12 @@ impl Tx {
                 sig,
                 hash_ty: EcdsaSighashType::All,
             };
+            println!("{:?}", signature);
             let pk = private_key.public_key(&secp);
+            unsafe {
+                input_ptr = input_ptr.offset(index as isize);
+                (*input_ptr).script_sig = ScriptBuf::builder().push_slice(&sig.serialize_compact()).push_key(&pk.into()).into_script();
+            }
             tx = (*sighasher.into_transaction()).clone().into();
         }
         println!("{:#?}", tx);
