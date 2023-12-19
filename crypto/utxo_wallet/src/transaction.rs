@@ -7,7 +7,6 @@ use bitcoin::transaction::Version;
 use bitcoin::{Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness, sighash};
 use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
-use bitcoin::script::Builder;
 
 pub struct Tx {
     inputs: Vec<TxIn>,

@@ -67,7 +67,7 @@ impl DESChar {
                 left_clone.clone().borrow().to_vec(),
                 right_clone.clone().borrow().to_vec(),
             ]
-                .concat();
+            .concat();
             self.sub_keys.push(permutation_by_table(
                 &combined,
                 &SUB_KEY_PERMUTATION,
@@ -172,7 +172,7 @@ impl DESChar {
                 left_clone.clone().borrow().deref(),
                 right_clone.clone().borrow_mut().deref_mut(),
                 i,
-                is_encrypt
+                is_encrypt,
             );
             // 上一轮的R变为这一轮的L
             left_clone
@@ -184,10 +184,22 @@ impl DESChar {
                 .borrow_mut()
                 .clone_from_slice(current_r.as_slice());
         }
-        println!("left: {:?}, len: {}", left_clone.clone().borrow(), left_clone.clone().borrow().len());
-        println!("right: {:?}, len: {}", right_clone.clone().borrow(), right_clone.clone().borrow().len());
+        println!(
+            "left: {:?}, len: {}",
+            left_clone.clone().borrow(),
+            left_clone.clone().borrow().len()
+        );
+        println!(
+            "right: {:?}, len: {}",
+            right_clone.clone().borrow(),
+            right_clone.clone().borrow().len()
+        );
         // 合并L和R并进行最终的逆变换
-        let array = [left_clone.borrow().as_slice(), right_clone.borrow().as_slice()].concat();
+        let array = [
+            left_clone.borrow().as_slice(),
+            right_clone.borrow().as_slice(),
+        ]
+        .concat();
         return array;
     }
 
@@ -243,7 +255,7 @@ mod test {
     }
 
     #[test]
-    fn test_encrypt(){
+    fn test_encrypt() {
         let mut des_char = DESChar::new(
             "0001001100110100010101110111100110011011101111001101111111110001".to_string(),
         );
@@ -252,7 +264,7 @@ mod test {
         let plaintext = "0000000100100011010001010110011110001001101010111100110111101111";
         let cipher = des_char.encrypt(plaintext);
         println!("cipher: {:?}", cipher);
-        let cipher_str:String = cipher.iter().map(|&bit| char::from(bit+b'0')).collect();
+        let cipher_str: String = cipher.iter().map(|&bit| char::from(bit + b'0')).collect();
         println!("cipher_str: {:?}", cipher_str);
         let result = des_char.decrypt(&cipher_str);
         println!("result: {:?}", result);
