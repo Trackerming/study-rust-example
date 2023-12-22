@@ -1,5 +1,5 @@
 use clap::Parser;
-use tool_lib::{start, Cli};
+use tool_lib::{cli::Cli, start};
 use tracing::{info, metadata::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
