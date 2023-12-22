@@ -1,4 +1,6 @@
-use tracing::{debug, error, info, metadata::LevelFilter, warn, Level};
+use clap::Parser;
+use tool_lib::{start, Cli};
+use tracing::{info, metadata::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -11,8 +13,7 @@ async fn main() {
                 .expect("should create tracing subscribe env filter"),
         )
         .init();
-    debug!("test debug info.");
-    info!("test log info.");
-    warn!("test warn info.");
-    error!("test error info.");
+    let args = Cli::parse();
+    info!("start...");
+    let _ = start(args).await;
 }
