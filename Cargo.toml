@@ -12,6 +12,7 @@ members = [
     "./crypto/des",
     "vsock-node",
     "async-web-server",
+    "tool",
     "redis-simple",
     "list",
     "algorithms",
