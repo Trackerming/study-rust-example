@@ -1,7 +1,8 @@
 use tracing::{debug, error, info, metadata::LevelFilter, warn, Level};
 use tracing_subscriber::EnvFilter;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::builder()
