@@ -21,7 +21,13 @@ pub async fn start(args: Cli) -> Result<()> {
             plaintext,
             password,
         } => encrypt(plaintext, password),
-        Decrypt { cipher, password } => decrypt(cipher, password),
+        Decrypt {
+            cipher,
+            password,
+            iv,
+            tag,
+            aad,
+        } => decrypt(cipher, password, iv, tag, aad),
     };
     Ok(())
 }

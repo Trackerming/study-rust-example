@@ -13,6 +13,12 @@ pub(crate) enum SubCommands {
         cipher: String,
         #[arg(short = 'p', long, default_value = "password")]
         password: String,
+        #[arg(short = 'i', long, default_value = "iv")]
+        iv: String,
+        #[arg(short = 't', long, default_value = "tag")]
+        tag: String,
+        #[arg(short = 'a', long, default_value = "aad")]
+        aad: String,
     },
 }
 

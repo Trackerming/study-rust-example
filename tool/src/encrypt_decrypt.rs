@@ -66,13 +66,19 @@ pub fn encrypt(plaintext: String, password: String) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn decrypt(cipher: String, password: String) -> anyhow::Result<()> {
+pub fn decrypt(
+    cipher: String,
+    password: String,
+    iv: String,
+    tag: String,
+    aad: String,
+) -> anyhow::Result<()> {
     info!("cipher: {cipher}");
     let key = generate_key(password);
     let cipher_arr = hex_string_2_array(&cipher);
-    let iv = hex_string_2_array("9c2c7c5ee288b073370cea96");
-    let tag = hex_string_2_array("c7838b8ef5427c024bc463b05a7a4c10");
-    let aad = hex_string_2_array("d83f220861254dfe0dfb2ffd69104fe5");
+    let iv = hex_string_2_array(&iv);
+    let tag = hex_string_2_array(&tag);
+    let aad = hex_string_2_array(&aad);
     let mut aes_gcm = AesGcm::new(KeySize256, &key[..], &iv, &aad);
     let mut out: Vec<u8> = repeat(0).take(cipher_arr.len()).collect();
     let result = aes_gcm.decrypt(&cipher_arr, &mut out, &tag);
