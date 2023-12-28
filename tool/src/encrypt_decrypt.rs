@@ -10,27 +10,12 @@ use std::iter::repeat;
 use std::{fmt::Write, string::String};
 use tracing::info;
 
+use crate::util::{hex_string_2_array, u8_array_convert_string};
+
 /// 使用hash算法将输入的密码转化为固定字节的key用于对数据进行加解密
 /// 目前暂定hash256和AES-256 GCM
 ///
 ///
-fn u8_array_convert_string(arr: &[u8]) -> String {
-    let mut result = String::new();
-    for a in arr {
-        write!(result, "{:02x}", a);
-    }
-    result
-}
-
-fn hex_string_2_array(param: &str) -> Vec<u8> {
-    assert_eq!(param.len() % 2, 0);
-    let mut result = Vec::new();
-    for i in 0..(param.len() / 2) {
-        let s = &param[i * 2..(i + 1) * 2];
-        result.push(u8::from_str_radix(s, 16).unwrap());
-    }
-    result
-}
 
 fn generate_key(password: String) -> Vec<u8> {
     let mut sh = Box::new(Sha3::new(Sha3Mode::Keccak256));

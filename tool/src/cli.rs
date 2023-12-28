@@ -1,4 +1,12 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
+
+#[derive(Subcommand, Debug)]
+pub enum EthSubCommands {
+    Sec2Address {
+        #[arg(short = 's', long, default_value = "private_key")]
+        private_key: String,
+    },
+}
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum SubCommands {
@@ -20,6 +28,14 @@ pub(crate) enum SubCommands {
         #[arg(short = 'a', long, default_value = "aad")]
         aad: String,
     },
+    Reverse {
+        #[arg(short = 't', long, default_value = "text")]
+        text: String,
+        #[arg(short = 'c', long, default_value = "code")]
+        code: String,
+    },
+    #[command(subcommand)]
+    Eth(EthSubCommands),
 }
 
 #[derive(Parser, Debug)]
