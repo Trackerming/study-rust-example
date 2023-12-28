@@ -11,7 +11,7 @@ pub mod eth;
 pub mod util;
 
 use crate::encrypt_decrypt::{decrypt, encrypt};
-use crate::eth::private_key_to_address;
+use crate::eth::{private_key_to_address, pub_key_str_to_address};
 
 pub async fn start(args: Cli) -> Result<()> {
     debug!("test debug info.");
@@ -40,6 +40,7 @@ pub async fn start(args: Cli) -> Result<()> {
 pub fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<()> {
     match eth_sub_commands {
         EthSubCommands::Sec2Address { private_key } => private_key_to_address(private_key),
+        EthSubCommands::Pub2Address { public_key } => pub_key_str_to_address(public_key),
     }
 }
 

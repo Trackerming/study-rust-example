@@ -13,7 +13,7 @@ pub fn get_public_key(private_key: &str) -> PublicKey {
     PublicKey::from_secret_key(&secp, &sec_key)
 }
 
-pub fn pub_key_to_address(public_key: PublicKey) -> String {
+fn pub_key_to_address(public_key: PublicKey) -> String {
     let mut hash = Box::new(Sha3::keccak256());
     hash.input(&public_key.serialize_uncompressed()[1..]);
     let mut out = vec![0u8; hash.output_bytes()];
@@ -23,6 +23,13 @@ pub fn pub_key_to_address(public_key: PublicKey) -> String {
     let mut address = "0x".to_string();
     address.push_str(&addr);
     address
+}
+
+pub fn pub_key_str_to_address(public_key: String) -> Result<()> {
+    let public_key = PublicKey::from_str(&public_key).expect("PublicKey from str failed.");
+    let address = pub_key_to_address(public_key);
+    info!("address: {:?}", address);
+    Ok(())
 }
 
 pub fn private_key_to_address(private_key: String) -> Result<()> {

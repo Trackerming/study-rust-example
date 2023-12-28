@@ -6,6 +6,11 @@ pub enum EthSubCommands {
         #[arg(short = 's', long, default_value = "private_key")]
         private_key: String,
     },
+
+    Pub2Address {
+        #[arg(short = 's', long, default_value = "private_key")]
+        public_key: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
