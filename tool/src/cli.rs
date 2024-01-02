@@ -14,6 +14,14 @@ pub enum EthSubCommands {
 }
 
 #[derive(Subcommand, Debug)]
+pub enum BtcSubCommands {
+    Pub2Address {
+        #[arg(short = 's', long, default_value = "private_key")]
+        public_key: String,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 pub(crate) enum SubCommands {
     Encrypt {
         #[arg(short = 't', long, default_value = "plaintext")]
@@ -41,6 +49,8 @@ pub(crate) enum SubCommands {
     },
     #[command(subcommand)]
     Eth(EthSubCommands),
+    #[command(subcommand)]
+    Btc(BtcSubCommands),
 }
 
 #[derive(Parser, Debug)]

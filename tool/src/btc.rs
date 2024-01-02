@@ -58,7 +58,8 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
 pub fn network_pub_key_to_address(public_key: String) -> Result<()> {
     let public_key =
         PublicKey::from_str(&public_key).expect("btc get public key from string failed");
-    let _ = pub_key_to_address(public_key);
+    let address = pub_key_to_address(public_key);
+    info!("address: {:?}", address);
     Ok(())
 }
 

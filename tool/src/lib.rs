@@ -1,6 +1,6 @@
 use crate::cli::{
-    Cli, EthSubCommands,
-    SubCommands::{Decrypt, Encrypt, Eth, Reverse},
+    BtcSubCommands, Cli, EthSubCommands,
+    SubCommands::{Btc, Decrypt, Encrypt, Eth, Reverse},
 };
 use anyhow::Result;
 use tracing::{debug, error, info, warn};
@@ -15,10 +15,6 @@ use crate::encrypt_decrypt::{decrypt, encrypt};
 use crate::eth::{private_key_to_address, pub_key_str_to_address};
 
 pub async fn start(args: Cli) -> Result<()> {
-    debug!("test debug info.");
-    info!("test log info.");
-    warn!("test warn info.");
-    error!("test error info.");
     info!("cli args: {:?}", args);
     let _ = match args.command {
         Encrypt {
@@ -34,8 +30,15 @@ pub async fn start(args: Cli) -> Result<()> {
         } => decrypt(cipher, password, iv, tag, aad),
         Reverse { text, code } => reverse(text, code),
         Eth(EthSubCommands) => handle_eth_sub_command(EthSubCommands),
+        Btc(BtcSubCommands) => handle_btc_sub_command(BtcSubCommands),
     };
     Ok(())
+}
+
+pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
+    match btc_sub_commands {
+        BtcSubCommands::Pub2Address { public_key } => btc::network_pub_key_to_address(public_key),
+    }
 }
 
 pub fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<()> {
