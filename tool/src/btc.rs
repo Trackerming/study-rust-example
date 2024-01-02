@@ -6,7 +6,7 @@ use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use std::str::FromStr;
 use tracing::info;
 
-use crate::util::u8_array_convert_string;
+use crate::util::{hex_string_2_array, u8_array_convert_string};
 
 // base58 for 1
 const P2PKH_PREFIX: u8 = 0x00;
@@ -57,15 +57,8 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
 fn address_to_p2pkh(address: String) -> String {
     let address_bytes = decode(address).into_vec().unwrap();
     // check
-    let mut sha256 = Box::new(Sha256::new());
     let sep = address_bytes.len() - 4;
-    sha256.input(&address_bytes[..sep]);
-    let mut out = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut out);
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&out);
-    let mut checksum = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut checksum);
+    let checksum = double_sha256(&address_bytes[..sep]);
     assert_eq!(&checksum[..4], &address_bytes[sep..]);
     let pub_key_bytes = &address_bytes[1..sep];
     let p2pkh = [
@@ -76,6 +69,27 @@ fn address_to_p2pkh(address: String) -> String {
     .concat();
     let script_hex = u8_array_convert_string(&p2pkh);
     script_hex
+}
+
+pub fn get_tx_hash(raw_tx: String) -> Result<()> {
+    let tx_bytes = hex_string_2_array(&raw_tx);
+    let mut hash_bytes = double_sha256(&tx_bytes);
+    hash_bytes.reverse();
+    let tx_hash = u8_array_convert_string(&hash_bytes);
+    println!("txhash: {:?}", tx_hash);
+    Ok(())
+}
+
+fn double_sha256(input: &[u8]) -> Vec<u8> {
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&input[..]);
+    let mut out = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut out);
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&out);
+    let mut result = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut result);
+    result
 }
 
 pub fn address_to_script(address: String) -> Result<()> {
@@ -96,6 +110,7 @@ pub fn network_pub_key_to_address(public_key: String) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
+
     #[test]
     pub fn to_address() {
         let pub_key =

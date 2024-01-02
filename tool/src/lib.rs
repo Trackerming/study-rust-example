@@ -39,6 +39,7 @@ pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
     match btc_sub_commands {
         BtcSubCommands::Pub2Address { public_key } => btc::network_pub_key_to_address(public_key),
         BtcSubCommands::Address2Script { address } => btc::address_to_script(address),
+        BtcSubCommands::RawTx2TxHash { raw_tx } => btc::get_tx_hash(raw_tx),
     }
 }
 

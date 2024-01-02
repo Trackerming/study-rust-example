@@ -8,7 +8,7 @@ pub enum EthSubCommands {
     },
 
     Pub2Address {
-        #[arg(short = 's', long, default_value = "public_key")]
+        #[arg(short = 'p', long, default_value = "public_key")]
         public_key: String,
     },
 }
@@ -20,8 +20,12 @@ pub enum BtcSubCommands {
         public_key: String,
     },
     Address2Script {
-        #[arg(short = 's', long, default_value = "address")]
+        #[arg(short = 'a', long, default_value = "address")]
         address: String,
+    },
+    RawTx2TxHash {
+        #[arg(short = 'a', long, default_value = "address")]
+        raw_tx: String,
     },
 }
 
