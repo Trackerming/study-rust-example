@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bs58::encode;
+use bs58::{decode, encode};
 use crypto::digest::Digest;
 use crypto::{ripemd160, sha2::Sha256};
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
@@ -54,6 +54,36 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
     encode(out).into_string()
 }
 
+fn address_to_p2pkh(address: String) -> String {
+    let address_bytes = decode(address).into_vec().unwrap();
+    // check
+    let mut sha256 = Box::new(Sha256::new());
+    let sep = address_bytes.len() - 4;
+    sha256.input(&address_bytes[..sep]);
+    let mut out = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut out);
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&out);
+    let mut checksum = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut checksum);
+    assert_eq!(&checksum[..4], &address_bytes[sep..]);
+    let pub_key_bytes = &address_bytes[1..sep];
+    let p2pkh = [
+        &[OP_DUP, OP_HASH160, pub_key_bytes.len() as u8][..],
+        &pub_key_bytes[..],
+        &[OP_EQUALVERIFY, OP_CHECKSIG],
+    ]
+    .concat();
+    let script_hex = u8_array_convert_string(&p2pkh);
+    script_hex
+}
+
+pub fn address_to_script(address: String) -> Result<()> {
+    let p2pkh = address_to_p2pkh(address);
+    info!("script_hex P2PKH: {:?}", p2pkh);
+    Ok(())
+}
+
 // 后续加network和地址类型参数
 pub fn network_pub_key_to_address(public_key: String) -> Result<()> {
     let public_key =
@@ -74,5 +104,15 @@ mod test {
             PublicKey::from_str(&pub_key).expect("btc get public key from string failed");
         let address = pub_key_to_address(public_key);
         assert_eq!(address, "1GKSnhP1XmCjZpEyUoupWsm7c1o64seyow".to_string());
+    }
+
+    #[test]
+    pub fn to_script() {
+        let address = "1GKSnhP1XmCjZpEyUoupWsm7c1o64seyow".to_string();
+        let p2pkh = address_to_p2pkh(address);
+        assert_eq!(
+            p2pkh,
+            "76a914a806e693f0de6638d99b90bb3c32bf0ece28abf388ac".to_string()
+        );
     }
 }
