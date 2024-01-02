@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bs58::encode;
 use crypto::digest::Digest;
 use crypto::{ripemd160, sha2::Sha256};
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
@@ -28,7 +29,7 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
     let mut out = vec![0u8; hash.output_bytes()];
     hash.result(&mut out);
     // P2PKH
-    let mut p2pkh = [
+    let p2pkh = [
         &[OP_DUP, OP_HASH160, out.len() as u8][..],
         &out[..],
         &[OP_EQUALVERIFY, OP_CHECKSIG],
@@ -37,7 +38,20 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
     let script_hex = u8_array_convert_string(&p2pkh);
     info!("script hex: {:?}", script_hex);
     // base58 编码
-    script_hex
+    // 获取checksum
+    // sha256
+    let leading_byte = 0;
+    out.insert(0, leading_byte);
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&out);
+    let mut result = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut result);
+    // sha256
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&result);
+    sha256.result(&mut out_1);
+    out.extend_from_slice(&out_1[..4]);
+    encode(out).into_string()
 }
 
 // 后续加network和地址类型参数
@@ -57,10 +71,7 @@ mod test {
             "0281e8a3181164227ff6b3b759fdcd5175b30500c7391ef6ee070a3bc2316c64da".to_string();
         let public_key =
             PublicKey::from_str(&pub_key).expect("btc get public key from string failed");
-        let script_hex = pub_key_to_address(public_key);
-        assert_eq!(
-            script_hex,
-            "76a914a806e693f0de6638d99b90bb3c32bf0ece28abf388ac".to_string()
-        );
+        let address = pub_key_to_address(public_key);
+        assert_eq!(address, "1GKSnhP1XmCjZpEyUoupWsm7c1o64seyow".to_string());
     }
 }
