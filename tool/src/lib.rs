@@ -15,7 +15,7 @@ use crate::encrypt_decrypt::{decrypt, encrypt};
 use crate::eth::{private_key_to_address, pub_key_str_to_address};
 
 pub async fn start(args: Cli) -> Result<()> {
-    info!("cli args: {:?}", args);
+    debug!("cli args: {:?}", args);
     let _ = match args.command {
         Encrypt {
             plaintext,

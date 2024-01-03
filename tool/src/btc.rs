@@ -42,15 +42,8 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
     // sha256
     let leading_byte = 0;
     out.insert(0, leading_byte);
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&out);
-    let mut result = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut result);
-    // sha256
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&result);
-    sha256.result(&mut out_1);
-    out.extend_from_slice(&out_1[..4]);
+    let checksum = double_sha256(&out);
+    out.extend_from_slice(&checksum[..4]);
     encode(out).into_string()
 }
 
@@ -76,7 +69,7 @@ pub fn get_tx_hash(raw_tx: String) -> Result<()> {
     let mut hash_bytes = double_sha256(&tx_bytes);
     hash_bytes.reverse();
     let tx_hash = u8_array_convert_string(&hash_bytes);
-    println!("txhash: {:?}", tx_hash);
+    println!("tx hash: {:?}", tx_hash);
     Ok(())
 }
 
