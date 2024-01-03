@@ -15,6 +15,10 @@ pub enum EthSubCommands {
 
 #[derive(Subcommand, Debug)]
 pub enum BtcSubCommands {
+    Sec2Address {
+        #[arg(short = 's', long, default_value = "private_key")]
+        private_key: String,
+    },
     Pub2Address {
         #[arg(short = 's', long, default_value = "public_key")]
         public_key: String,
@@ -24,7 +28,7 @@ pub enum BtcSubCommands {
         address: String,
     },
     RawTx2TxHash {
-        #[arg(short = 'a', long, default_value = "address")]
+        #[arg(short = 'a', long, default_value = "raw_tx")]
         raw_tx: String,
     },
 }

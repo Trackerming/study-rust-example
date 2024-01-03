@@ -1,3 +1,4 @@
+use crate::eth::get_public_key;
 use anyhow::Result;
 use bs58::{decode, encode};
 use crypto::digest::Digest;
@@ -45,6 +46,13 @@ fn pub_key_to_address(public_key: PublicKey) -> String {
     let checksum = double_sha256(&out);
     out.extend_from_slice(&checksum[..4]);
     encode(out).into_string()
+}
+
+pub fn secret_to_address(secret_key: String) -> Result<()> {
+    let public_key = get_public_key(&secret_key);
+    let address = pub_key_to_address(public_key);
+    info!("address: {:?}", address);
+    Ok(())
 }
 
 fn address_to_p2pkh(address: String) -> String {
