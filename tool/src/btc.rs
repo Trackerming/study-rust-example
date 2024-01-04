@@ -108,6 +108,19 @@ pub fn network_pub_key_to_address(public_key: String) -> Result<()> {
     Ok(())
 }
 
+pub fn wif_2_private_key(wif: String, is_compressed: bool) -> String {
+    let key_bytes = bs58::decode(wif).into_vec().unwrap();
+    let mut sep = key_bytes.len() - 4;
+    let check_sum = double_sha256(&key_bytes[..sep]);
+    assert_eq!(&key_bytes[sep..], &check_sum[..4]);
+    // 压缩公钥 末尾多加一个0x01 字节的数据
+    if is_compressed {
+        assert_eq!(key_bytes[sep], 1);
+        sep = sep - 1;
+    }
+    u8_array_convert_string(&key_bytes[1..sep])
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -129,6 +142,16 @@ mod test {
         assert_eq!(
             p2pkh,
             "76a914a806e693f0de6638d99b90bb3c32bf0ece28abf388ac".to_string()
+        );
+    }
+
+    #[test]
+    pub fn test_wif_key_convert() {
+        let wif = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ".to_string();
+        let key = wif_2_private_key(wif, false);
+        assert_eq!(
+            key,
+            "0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d".to_string()
         );
     }
 }
