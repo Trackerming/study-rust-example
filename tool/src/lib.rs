@@ -1,3 +1,4 @@
+use crate::btc::{private_2_wif_key, private_key_convert};
 use crate::cli::{
     BtcSubCommands, Cli, EthSubCommands,
     SubCommands::{Btc, Decrypt, Encrypt, Eth, Reverse},
@@ -37,6 +38,10 @@ pub async fn start(args: Cli) -> Result<()> {
 
 pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
     match btc_sub_commands {
+        BtcSubCommands::PrivateKeyConvert {
+            private_key,
+            format,
+        } => private_key_convert(private_key, format),
         BtcSubCommands::Sec2Address { private_key } => btc::secret_to_address(private_key),
         BtcSubCommands::Pub2Address { public_key } => btc::network_pub_key_to_address(public_key),
         BtcSubCommands::Address2Script { address } => btc::address_to_script(address),

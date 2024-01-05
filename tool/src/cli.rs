@@ -15,6 +15,12 @@ pub enum EthSubCommands {
 
 #[derive(Subcommand, Debug)]
 pub enum BtcSubCommands {
+    PrivateKeyConvert {
+        #[arg(short = 's', long, default_value = "private_key")]
+        private_key: String,
+        #[arg(short = 'f', long, default_value = "hex")]
+        format: String,
+    },
     Sec2Address {
         #[arg(short = 's', long, default_value = "private_key")]
         private_key: String,

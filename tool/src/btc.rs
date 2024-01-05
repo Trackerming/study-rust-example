@@ -115,10 +115,32 @@ pub fn wif_2_private_key(wif: String, is_compressed: bool) -> String {
     assert_eq!(&key_bytes[sep..], &check_sum[..4]);
     // 压缩公钥 末尾多加一个0x01 字节的数据
     if is_compressed {
-        assert_eq!(key_bytes[sep], 1);
         sep = sep - 1;
+        assert_eq!(key_bytes[sep], 1);
     }
     u8_array_convert_string(&key_bytes[1..sep])
+}
+
+pub fn private_2_wif_key(private_key: String, is_compressed: bool) -> String {
+    let mut key_bytes = hex_string_2_array(&private_key);
+    key_bytes.insert(0, 0x80u8);
+    if is_compressed {
+        key_bytes.push(0x01u8);
+    };
+    let checksum = double_sha256(&key_bytes);
+    key_bytes.extend_from_slice(&checksum[..4]);
+    bs58::encode(key_bytes).into_string()
+}
+
+pub fn private_key_convert(private_key: String, format: String) -> Result<()> {
+    if format.eq(&"hex".to_string()) {
+        let key = private_2_wif_key(private_key, true);
+        info!("hex => wif: {:?}", key);
+    } else {
+        let key = wif_2_private_key(private_key, true);
+        info!("wif => hex: {:?}", key);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -152,6 +174,14 @@ mod test {
         assert_eq!(
             key,
             "0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d".to_string()
+        );
+        let wif_compute = private_2_wif_key(
+            "0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d".to_string(),
+            false,
+        );
+        assert_eq!(
+            wif_compute,
+            "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ".to_string()
         );
     }
 }
