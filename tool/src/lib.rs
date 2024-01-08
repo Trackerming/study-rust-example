@@ -10,10 +10,11 @@ pub mod btc;
 pub mod cli;
 pub mod encrypt_decrypt;
 pub mod eth;
+pub mod http_request;
 pub mod util;
 
 use crate::encrypt_decrypt::{decrypt, encrypt};
-use crate::eth::{private_key_to_address, pub_key_str_to_address};
+use crate::eth::{private_key_to_address, pub_key_str_to_address, query_chain_info_by_address};
 
 pub async fn start(args: Cli) -> Result<()> {
     debug!("cli args: {:?}", args);
@@ -30,7 +31,7 @@ pub async fn start(args: Cli) -> Result<()> {
             aad,
         } => decrypt(cipher, password, iv, tag, aad),
         Reverse { text, code } => reverse(text, code),
-        Eth(EthSubCommands) => handle_eth_sub_command(EthSubCommands),
+        Eth(EthSubCommands) => handle_eth_sub_command(EthSubCommands).await,
         Btc(BtcSubCommands) => handle_btc_sub_command(BtcSubCommands),
     };
     Ok(())
@@ -49,10 +50,15 @@ pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
     }
 }
 
-pub fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<()> {
+pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<()> {
     match eth_sub_commands {
         EthSubCommands::Sec2Address { private_key } => private_key_to_address(private_key),
         EthSubCommands::Pub2Address { public_key } => pub_key_str_to_address(public_key),
+        EthSubCommands::ChainInfo {
+            host,
+            api_key,
+            address,
+        } => query_chain_info_by_address(host, api_key, address).await,
     }
 }
 

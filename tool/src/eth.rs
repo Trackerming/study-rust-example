@@ -1,7 +1,9 @@
+use crate::http_request::fetch_url;
 use anyhow::Result;
 use crypto::digest::Digest;
 use crypto::sha3::Sha3;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use serde_json::json;
 use std::str::FromStr;
 use tracing::info;
 
@@ -40,5 +42,27 @@ pub fn private_key_to_address(private_key: String) -> Result<()> {
         public_key.to_string(),
         address
     );
+    Ok(())
+}
+
+pub async fn query_chain_info_by_address(
+    host: String,
+    api_key: String,
+    address: String,
+) -> Result<()> {
+    let url = host + &'/'.to_string() + &api_key;
+    let url = url.parse().unwrap();
+    let mut params = Vec::new();
+    params.push(address.as_str());
+    params.push("latest");
+    let json_data = json!({
+        "jsonrpc": "2.0",
+        "method": "eth_getBalance",
+        "params": params,
+        "id": 1
+    });
+    fetch_url(url, serde_json::to_string(&json_data).unwrap())
+        .await
+        .unwrap();
     Ok(())
 }

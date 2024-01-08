@@ -11,6 +11,15 @@ pub enum EthSubCommands {
         #[arg(short = 'p', long, default_value = "public_key")]
         public_key: String,
     },
+
+    ChainInfo {
+        #[arg(short = 's', long, default_value = "host")]
+        host: String,
+        #[arg(short = 'k', long, default_value = "api_key")]
+        api_key: String,
+        #[arg(short = 'a', long, default_value = "address")]
+        address: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
