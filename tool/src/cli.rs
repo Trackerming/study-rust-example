@@ -20,6 +20,14 @@ pub enum EthSubCommands {
         #[arg(short = 'a', long, default_value = "address")]
         address: String,
     },
+    Bip32 {
+        #[arg(short = 's', long, default_value = "x_private_key")]
+        x_private_key: Option<String>,
+        #[arg(short = 'u', long, default_value = "x_public_key")]
+        x_public_key: Option<String>,
+        #[arg(short = 'p', long, default_value = "path")]
+        path: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -45,6 +53,14 @@ pub enum BtcSubCommands {
     RawTx2TxHash {
         #[arg(short = 'a', long, default_value = "raw_tx")]
         raw_tx: String,
+    },
+    Bip32 {
+        #[arg(short = 's', long, default_value = "x_private_key")]
+        x_private_key: Option<String>,
+        #[arg(short = 'u', long, default_value = "x_public_key")]
+        x_public_key: Option<String>,
+        #[arg(short = 'p', long, default_value = "path")]
+        path: String,
     },
 }
 

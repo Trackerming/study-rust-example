@@ -1,5 +1,7 @@
+use crate::bip32::{derive_private_by_path, derive_public_by_path};
 use crate::eth::get_public_key;
 use anyhow::Result;
+use bip32::{PublicKey as Bip32PubKey, XPrv};
 use bs58::{decode, encode};
 use crypto::digest::Digest;
 use crypto::{ripemd160, sha2::Sha256};
@@ -93,6 +95,20 @@ fn double_sha256(input: &[u8]) -> Vec<u8> {
     result
 }
 
+pub fn bip32_to_address(xkey: String, path: String) -> Result<()> {
+    let x_pub_key = if xkey.starts_with("xprv") {
+        let x_priv_key = derive_private_by_path(path, xkey);
+        x_priv_key.public_key()
+    } else {
+        derive_public_by_path(path, xkey)
+    };
+    let address = pub_key_to_address(
+        PublicKey::from_slice(x_pub_key.public_key().to_bytes().to_vec().as_slice()).unwrap(),
+    );
+    info!("address: {:?}", address);
+    Ok(())
+}
+
 pub fn address_to_script(address: String) -> Result<()> {
     let p2pkh = address_to_p2pkh(address);
     info!("script_hex P2PKH: {:?}", p2pkh);
@@ -183,5 +199,12 @@ mod test {
             wif_compute,
             "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ".to_string()
         );
+    }
+
+    #[test]
+    pub fn test_derive_key() {
+        let xpub_key = "xpub6CA8TcTW7TPFnroJuxUqUJmFyhmNxmLJiLToAnwqZwSQzhBhVHTN3C19oAfcDfzHLdt3ZrVzgcWjsZ7ZGcGay6AjhtE8FcKGRfUGkfcayaL".to_string();
+        let path = "m/0/1".to_string();
+        bip32_to_address(xpub_key, path);
     }
 }

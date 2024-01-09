@@ -48,6 +48,20 @@ pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
         BtcSubCommands::Pub2Address { public_key } => btc::network_pub_key_to_address(public_key),
         BtcSubCommands::Address2Script { address } => btc::address_to_script(address),
         BtcSubCommands::RawTx2TxHash { raw_tx } => btc::get_tx_hash(raw_tx),
+        BtcSubCommands::Bip32 {
+            x_private_key,
+            x_public_key,
+            path,
+        } => {
+            if x_public_key.is_some() {
+                btc::bip32_to_address(x_public_key.unwrap().to_string(), path)
+            } else if x_private_key.is_some() {
+                btc::bip32_to_address(x_private_key.unwrap().to_string(), path)
+            } else {
+                error!("params error: x_private_key or x_public_key must have one.");
+                Ok(())
+            }
+        }
     }
 }
 
@@ -60,6 +74,20 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             api_key,
             address,
         } => query_chain_info_by_address(host, api_key, address).await,
+        EthSubCommands::Bip32 {
+            x_private_key,
+            x_public_key,
+            path,
+        } => {
+            if x_public_key.is_some() {
+                eth::bip32_to_address(x_public_key.unwrap().to_string(), path)
+            } else if x_private_key.is_some() {
+                eth::bip32_to_address(x_private_key.unwrap().to_string(), path)
+            } else {
+                error!("params error: x_private_key or x_public_key must have one.");
+                Ok(())
+            }
+        }
     }
 }
 

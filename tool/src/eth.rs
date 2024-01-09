@@ -1,5 +1,7 @@
+use crate::bip32::{derive_private_by_path, derive_public_by_path};
 use crate::http_request::fetch_url;
 use anyhow::Result;
+use bip32::PublicKey as Bip32PubKey;
 use crypto::digest::Digest;
 use crypto::sha3::Sha3;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
@@ -42,6 +44,20 @@ pub fn private_key_to_address(private_key: String) -> Result<()> {
         public_key.to_string(),
         address
     );
+    Ok(())
+}
+
+pub fn bip32_to_address(xkey: String, path: String) -> Result<()> {
+    let x_pub_key = if xkey.starts_with("xprv") {
+        let x_priv_key = derive_private_by_path(path, xkey);
+        x_priv_key.public_key()
+    } else {
+        derive_public_by_path(path, xkey)
+    };
+    let address = pub_key_to_address(
+        PublicKey::from_slice(x_pub_key.public_key().to_bytes().to_vec().as_slice()).unwrap(),
+    );
+    info!("address: {:?}", address);
     Ok(())
 }
 
