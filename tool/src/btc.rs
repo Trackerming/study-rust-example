@@ -1,7 +1,7 @@
-use crate::bip32::{derive_private_by_path, derive_public_by_path};
+use crate::bip32::{derive_private_by_path, derive_public_by_path, mnemonic_to_x_prv};
 use crate::eth::get_public_key;
 use anyhow::Result;
-use bip32::{PublicKey as Bip32PubKey, XPrv};
+use bip32::{Prefix, PublicKey as Bip32PubKey};
 use bs58::{decode, encode};
 use crypto::digest::Digest;
 use crypto::{ripemd160, sha2::Sha256};
@@ -106,6 +106,19 @@ pub fn bip32_to_address(xkey: String, path: String) -> Result<()> {
         PublicKey::from_slice(x_pub_key.public_key().to_bytes().to_vec().as_slice()).unwrap(),
     );
     info!("address: {:?}", address);
+    Ok(())
+}
+
+pub fn bip39_to_key(mnemonic: String, passphrase: String) -> Result<()> {
+    let key = mnemonic_to_x_prv(mnemonic, passphrase);
+    let xkey_str = &*key.to_string(Prefix::XPRV).to_string();
+    let extend_key = derive_private_by_path("m/44'/0'/0'".to_string(), xkey_str.to_string());
+    info!("xPrivKey: {:?}", xkey_str);
+    info!(
+        "extend key for m/44'/0'/0': {:?}\n xPubKey: {:?}",
+        extend_key.to_string(Prefix::XPRV),
+        extend_key.public_key().to_string(Prefix::XPUB)
+    );
     Ok(())
 }
 

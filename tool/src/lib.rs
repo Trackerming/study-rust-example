@@ -62,6 +62,10 @@ pub fn handle_btc_sub_command(btc_sub_commands: BtcSubCommands) -> Result<()> {
                 Ok(())
             }
         }
+        BtcSubCommands::Bip39 {
+            mnemonic,
+            passphrase,
+        } => btc::bip39_to_key(mnemonic, passphrase),
     }
 }
 
@@ -88,6 +92,10 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
                 Ok(())
             }
         }
+        EthSubCommands::Bip39 {
+            mnemonic,
+            passphrase,
+        } => eth::bip39_to_key(mnemonic, passphrase),
     }
 }
 

@@ -28,6 +28,12 @@ pub enum EthSubCommands {
         #[arg(short = 'p', long, default_value = "path")]
         path: String,
     },
+    Bip39 {
+        #[arg(short = 'm', long, default_value = "mnemonic")]
+        mnemonic: String,
+        #[arg(short = 'p', long, default_value = "passphrase")]
+        passphrase: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -61,6 +67,12 @@ pub enum BtcSubCommands {
         x_public_key: Option<String>,
         #[arg(short = 'p', long, default_value = "path")]
         path: String,
+    },
+    Bip39 {
+        #[arg(short = 'm', long, default_value = "mnemonic")]
+        mnemonic: String,
+        #[arg(short = 'p', long, default_value = "passphrase")]
+        passphrase: String,
     },
 }
 
