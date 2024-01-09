@@ -6,6 +6,7 @@ use crate::cli::{
 use anyhow::Result;
 use tracing::{debug, error, info, warn};
 
+pub mod bip32;
 pub mod btc;
 pub mod cli;
 pub mod encrypt_decrypt;
