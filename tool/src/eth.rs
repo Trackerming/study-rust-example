@@ -1,15 +1,72 @@
 use crate::bip32::{derive_private_by_path, derive_public_by_path, mnemonic_to_x_prv};
 use crate::http_request::fetch_url;
+use crate::util::u8_array_convert_string;
 use anyhow::Result;
 use bip32::{Prefix, PublicKey as Bip32PubKey};
 use crypto::digest::Digest;
 use crypto::sha3::Sha3;
+use ethers::abi::AbiEncode;
+use ethers::utils::hex::ToHex;
+use ethers::{
+    core::types::{Address, TransactionRequest},
+    prelude::*,
+    signers::LocalWallet,
+};
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use serde_json::json;
 use std::str::FromStr;
+use std::sync::Arc;
 use tracing::info;
 
-use crate::util::u8_array_convert_string;
+pub async fn create_transaction(
+    private_key: String,
+    rpc_url: String,
+    to: String,
+    value: u128,
+    chain_id: u8,
+    contract: Option<String>,
+) -> Result<()> {
+    let wallet = private_key.as_str().parse::<LocalWallet>().unwrap();
+    let provider = Provider::<Http>::try_from(rpc_url.as_str()).unwrap();
+    let client = Arc::new(SignerMiddleware::new(provider, wallet));
+    let mut tx_request = if contract.is_none() {
+        TransactionRequest::new()
+            .to(to.as_str())
+            .value(value)
+            .chain_id(chain_id)
+            .into()
+    } else {
+        abigen!(
+            ERC20Contract,
+            r#"[
+            function balanceOf(address account) external view returns (uint256)
+            function decimals() external view returns (uint8)
+            function symbol() external view returns (string memory)
+            function transfer(address to, uint256 amount) external returns (bool)
+            event Transfer(address indexed from, address indexed to, uint256 value)
+        ]"#,
+        );
+        let address = contract.unwrap().as_str().parse::<Address>().unwrap();
+        let contract = ERC20Contract::new(address, client.clone());
+        (*contract
+            .transfer(to.as_str().parse::<Address>().unwrap(), value.into())
+            .tx
+            .set_chain_id(chain_id)
+            .set_value(0))
+        .clone()
+        .into()
+    };
+    client
+        .fill_transaction(&mut tx_request, None)
+        .await
+        .unwrap();
+    let sig = client.signer().sign_transaction(&tx_request).await.unwrap();
+    let tx = tx_request.rlp_signed(&sig);
+    info!("tx: {:?}", tx);
+    let pending_tx = client.provider().send_raw_transaction(tx).await.unwrap();
+    info!("txHash: {:?}", pending_tx.tx_hash());
+    Ok(())
+}
 
 pub fn get_public_key(private_key: &str) -> PublicKey {
     let secp = Secp256k1::new();
@@ -94,4 +151,36 @@ pub async fn query_chain_info_by_address(
         .await
         .unwrap();
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use tokio::runtime::Runtime;
+
+    #[test]
+    fn test_create_tx() {
+        let rt = Runtime::new().unwrap();
+        let _ = rt.block_on(create_transaction(
+            "1cb90607624a78a065b51ded6fc701c381aa6b0aef37ed278f15774dd5b85758".to_string(),
+            "https://ethereum-goerli.publicnode.com".to_string(),
+            "0x9BF5a8AF3333e2bF300FB00A0B7B8aDddc90dd43".to_string(),
+            100000000000000000,
+            0x05,
+            None,
+        ));
+    }
+
+    #[test]
+    fn test_create_erc20_tx() {
+        let rt = Runtime::new().unwrap();
+        let _ = rt.block_on(create_transaction(
+            "1cb90607624a78a065b51ded6fc701c381aa6b0aef37ed278f15774dd5b85758".to_string(),
+            "https://ethereum-goerli.publicnode.com".to_string(),
+            "0x9BF5a8AF3333e2bF300FB00A0B7B8aDddc90dd43".to_string(),
+            100000,
+            0x05,
+            Some("0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc".to_string()),
+        ));
+    }
 }
