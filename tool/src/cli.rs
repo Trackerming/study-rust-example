@@ -1,4 +1,5 @@
 use clap::{Args, Parser, Subcommand};
+use ethers::types::U128;
 
 #[derive(Subcommand, Debug)]
 pub enum EthSubCommands {
@@ -33,6 +34,20 @@ pub enum EthSubCommands {
         mnemonic: String,
         #[arg(short = 'p', long, default_value = "passphrase")]
         passphrase: String,
+    },
+    Transfer {
+        #[arg(short = 's', long, default_value = "private_key")]
+        private_key: String,
+        #[arg(short = 'r', long, default_value = "rpc host")]
+        rpc_url: String,
+        #[arg(short = 't', long, default_value = "destination")]
+        to: String,
+        #[arg(short = 'v', long)]
+        value: u128,
+        #[arg(short = 'i', long)]
+        chain_id: u8,
+        #[arg(short = 'c', long)]
+        contract_address: Option<String>,
     },
 }
 
