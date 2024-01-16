@@ -1,4 +1,4 @@
-#[cfg(not(feature = "mock-vsock"))]
+#[cfg(feature = "vsock")]
 pub(crate) mod enclave {
     use anyhow::{anyhow, Context, Result};
     use std::net::Shutdown;
@@ -36,7 +36,7 @@ pub(crate) mod enclave {
     }
 }
 
-#[cfg(feature = "mock-vsock")]
+#[cfg(not(feature = "vsock"))]
 pub(crate) mod enclave {
     use anyhow::{Context, Result};
     use std::{net::SocketAddr, str::FromStr};
