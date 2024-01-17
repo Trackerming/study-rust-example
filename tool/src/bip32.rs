@@ -1,8 +1,9 @@
-use bip32::{DerivationPath, Mnemonic, Prefix, Seed, XPrv, XPub};
+use bip32::{DerivationPath, Prefix, XPrv, XPub};
+use bip39::Mnemonic;
 use std::str::FromStr;
 
 pub fn mnemonic_to_x_prv(words: String, passphrase: String) -> XPrv {
-    let mnemonic = Mnemonic::new(words.as_str(), Default::default()).unwrap();
+    let mnemonic = Mnemonic::from_str(words.as_str()).unwrap();
     let seed = mnemonic.to_seed(&passphrase);
     XPrv::new(&seed).unwrap()
 }
