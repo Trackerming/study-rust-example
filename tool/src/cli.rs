@@ -35,6 +35,14 @@ pub enum EthSubCommands {
         #[arg(short = 'p', long, default_value = "passphrase")]
         passphrase: String,
     },
+    ExportPrivateKey {
+        #[arg(short = 'm', long, default_value = "mnemonic")]
+        mnemonic: String,
+        #[arg(short = 'p', long, default_value = "passphrase")]
+        passphrase: String,
+        #[arg(short = 't', long, default_value = "path")]
+        path: String,
+    },
     Transfer {
         #[arg(short = 's', long, default_value = "private_key")]
         private_key: String,

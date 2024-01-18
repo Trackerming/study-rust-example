@@ -96,6 +96,11 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             mnemonic,
             passphrase,
         } => eth::bip39_to_key(mnemonic, passphrase),
+        EthSubCommands::ExportPrivateKey {
+            mnemonic,
+            passphrase,
+            path,
+        } => eth::mnemonic_to_key_pair_by_path(mnemonic, passphrase, path),
         EthSubCommands::Transfer {
             private_key,
             rpc_url,

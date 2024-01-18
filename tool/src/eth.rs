@@ -131,6 +131,24 @@ pub fn bip39_to_key(mnemonic: String, passphrase: String) -> Result<()> {
     Ok(())
 }
 
+pub fn mnemonic_to_key_pair_by_path(
+    mnemonic: String,
+    passphrase: String,
+    path: String,
+) -> Result<()> {
+    let key = mnemonic_to_x_prv(mnemonic, passphrase);
+    let xkey_str = &*key.to_string(Prefix::XPRV).to_string();
+    let mut path_complete = "m/44'/60'/0'".to_string();
+    path_complete.push_str(&path[1..]);
+    let extend_key = derive_private_by_path(path_complete, xkey_str.to_string());
+    let address = pub_key_to_address(
+        PublicKey::from_slice(extend_key.public_key().to_bytes().to_vec().as_slice()).unwrap(),
+    );
+    let private_key = u8_array_convert_string(extend_key.to_bytes().to_vec().as_slice());
+    info!("private key: {:?}, address: {:?}", private_key, address);
+    Ok(())
+}
+
 pub async fn query_chain_info_by_address(
     host: String,
     api_key: String,
