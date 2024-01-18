@@ -108,9 +108,20 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             value,
             chain_id,
             contract_address,
+            gas_price,
+            gas_limit,
         } => {
-            eth::create_transaction(private_key, rpc_url, to, value, chain_id, contract_address)
-                .await
+            eth::create_transaction(
+                private_key,
+                rpc_url,
+                to,
+                value,
+                chain_id,
+                contract_address,
+                gas_price,
+                gas_limit,
+            )
+            .await
         }
     }
 }

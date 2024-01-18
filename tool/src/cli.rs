@@ -56,6 +56,10 @@ pub enum EthSubCommands {
         chain_id: u8,
         #[arg(short = 'c', long)]
         contract_address: Option<String>,
+        #[arg(short = 'p', long)]
+        gas_price: Option<u128>,
+        #[arg(short = 'l', long)]
+        gas_limit: Option<u128>,
     },
 }
 

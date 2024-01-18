@@ -6,6 +6,7 @@ use bip32::{Prefix, PublicKey as Bip32PubKey};
 use crypto::digest::Digest;
 use crypto::sha3::Sha3;
 use ethers::abi::AbiEncode;
+use ethers::types::transaction::eip2718::TypedTransaction;
 use ethers::utils::hex::ToHex;
 use ethers::{
     core::types::{Address, TransactionRequest},
@@ -25,11 +26,13 @@ pub async fn create_transaction(
     value: u128,
     chain_id: u8,
     contract: Option<String>,
+    gas_price: Option<u128>,
+    gas_limit: Option<u128>,
 ) -> Result<()> {
     let wallet = private_key.as_str().parse::<LocalWallet>().unwrap();
     let provider = Provider::<Http>::try_from(rpc_url.as_str()).unwrap();
     let client = Arc::new(SignerMiddleware::new(provider, wallet));
-    let mut tx_request = if contract.is_none() {
+    let mut tx_request: TypedTransaction = if contract.is_none() {
         TransactionRequest::new()
             .to(to.as_str())
             .value(value)
@@ -56,6 +59,12 @@ pub async fn create_transaction(
         .clone()
         .into()
     };
+    if let Some(gas_price_val) = gas_price {
+        tx_request.set_gas_price(gas_price_val);
+    }
+    if let Some(gas_limit_val) = gas_limit {
+        tx_request.set_gas(gas_limit_val);
+    }
     client
         .fill_transaction(&mut tx_request, None)
         .await

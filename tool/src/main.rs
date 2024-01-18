@@ -14,6 +14,6 @@ async fn main() {
         )
         .init();
     let args = Cli::parse();
-    info!("start...");
+    info!("crypto cli start...");
     let _ = start(args).await;
 }
