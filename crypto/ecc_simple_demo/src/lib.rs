@@ -1,7 +1,7 @@
 pub mod point;
 
 use crate::point::{mod_exp, Point};
-use std::collections::HashMap;
+use rand::{thread_rng, Rng};
 use std::ops::Deref;
 
 /// SEGMAX是啥？
@@ -23,14 +23,12 @@ const A: usize = 1;
 impl ECC23 {
     pub fn new(g: Point, a: usize, b: usize, mod_value: usize) -> Self {
         let G = g;
-        let mut pointers = HashMap::new();
-        pointers.insert(1, G.clone());
         Self {
             G,
             a,
             b,
             mod_value,
-            n: 0,
+            n: 28,
         }
     }
 
@@ -52,24 +50,25 @@ impl ECC23 {
                 ))
                 % self.mod_value;
         } else {
-            m = ((3 * p.x.pow(2) + A) * mod_exp(2 * p.y, self.mod_value - 2, self.mod_value))
+            m = ((3 * p.x.pow(2) + self.a) * mod_exp(2 * p.y, self.mod_value - 2, self.mod_value))
                 % self.mod_value;
         }
-        let mut point_result = Point { x: 0, y: 0 };
+        // println!("m: {:?}, p: {:?}, q: {:?}", m, p, q);
+        let x_r;
+        let y_r;
         if m != 0 {
-            point_result.x = (m.pow(2) + self.mod_value - p.x - q.x) % self.mod_value;
-            point_result.y = (m * (p.x + self.mod_value - point_result.x) + self.mod_value - p.y)
-                % self.mod_value;
+            x_r = (m.pow(2) + self.mod_value * 2 - p.x - q.x) % self.mod_value;
+            y_r = (m * (p.x + self.mod_value - x_r) + self.mod_value - p.y) % self.mod_value;
         } else {
-            point_result.x = (2 * self.mod_value - p.x - q.x) % self.mod_value;
-            point_result.y = (self.mod_value - p.y) % self.mod_value;
+            x_r = (2 * self.mod_value - p.x - q.x) % self.mod_value;
+            y_r = (self.mod_value - p.y) % self.mod_value;
         }
-        point_result
+        Point { x: x_r, y: y_r }
     }
 
-    pub fn scalar_multiplication(&self, d: usize) -> Point {
+    pub fn scalar_multiplication(&self, d: usize, point: Point) -> Point {
         let mut result = Point { x: 0, y: 0 };
-        let mut current = self.G;
+        let mut current = point;
         let mut d = d;
         while d > 0 {
             if d % 2 == 1 {
@@ -79,6 +78,39 @@ impl ECC23 {
             d >>= 1;
         }
         result
+    }
+
+    pub fn generate_key_pair(&self) -> (usize, Point) {
+        let random = thread_rng().gen_range(1..self.mod_value);
+        let point = self.scalar_multiplication(random, self.G);
+        (random, point)
+    }
+
+    pub fn sign(&self, private_key: usize, msg: usize) -> (usize, usize) {
+        // 选择随机数k
+        let k = thread_rng().gen_range(1..self.mod_value);
+        println!("sign k: {:?}", k);
+        // R = k * G
+        let r_point = self.scalar_multiplication(k, self.G);
+        let r = r_point.x;
+        // s = (k^-1)*(m+rd) mod n
+        let s = (mod_exp(k, self.mod_value - 2, self.mod_value) * (msg + r * private_key))
+            % self.mod_value;
+        (r, s)
+    }
+
+    pub fn verify(&self, sig: (usize, usize), msg: usize, public_key: Point) -> bool {
+        // 计算 s^-1*(m*G+r*Q)
+        let m_g = self.scalar_multiplication(msg, self.G);
+        let r_q = self.scalar_multiplication(sig.0, public_key);
+        let s_inv = mod_exp(sig.1, self.mod_value - 2, self.mod_value);
+        let mg_sinv = self.scalar_multiplication(s_inv, m_g);
+        let rq_sinv = self.scalar_multiplication(s_inv, r_q);
+        let point = self.point_addition(mg_sinv, rq_sinv);
+        println!("result: {:?}", point);
+        let k_point = self.scalar_multiplication(sig.0, self.G);
+        println!("result_verify: {:?}", k_point);
+        point.x == k_point.x
     }
 }
 
@@ -117,10 +149,23 @@ mod tests {
         let ecc23 = ECC23::new(Point { x: 0, y: 1 }, 1, 1, mod_val);
         let mut points = vec![];
         for i in 1..mod_val + 1 {
-            let point = ecc23.scalar_multiplication(i);
+            let point = ecc23.scalar_multiplication(i, ecc23.G);
             println!("{i}G: {:?}", point);
             points.push(point);
         }
         assert_eq!(points, expect_points);
+    }
+
+    #[test]
+    fn verify_sig() {
+        // 正常都是hash化之后映射到椭圆曲线的域的范围
+        let msg = 18;
+        let mod_val = 23;
+        let ecc23 = ECC23::new(Point { x: 0, y: 1 }, 0, 7, mod_val);
+        let key = ecc23.generate_key_pair();
+        let sig = ecc23.sign(key.0, msg);
+        println!("key: {:?}, sig(r, s): {:?}", key, sig);
+        let result = ecc23.verify(sig, msg, key.1);
+        assert_eq!(result, true);
     }
 }
