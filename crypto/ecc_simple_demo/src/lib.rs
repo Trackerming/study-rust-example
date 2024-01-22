@@ -1,7 +1,10 @@
+#![feature(core_intrinsics)]
+
 pub mod point;
 
 use crate::point::{mod_exp, Point};
 use rand::{thread_rng, Rng};
+use std::intrinsics::sqrtf32;
 use std::ops::Deref;
 
 /// SEGMAX是啥？
@@ -92,6 +95,7 @@ impl ECC {
         println!("sign k: {:?}", k);
         // R = k * G
         let r_point = self.scalar_multiplication(k, self.G);
+        println!("r point: {:?}", r_point);
         let r = r_point.x;
         // s = (k^-1)*(m+rd) mod n
         let s = (mod_exp(k, self.n - 2, self.n) * (msg + r * private_key)) % self.n;
@@ -108,6 +112,29 @@ impl ECC {
         let point = self.point_addition(mg_sinv, rq_sinv);
         println!("result: {:?}", point);
         point.x == sig.0
+    }
+
+    // msg被编写到曲线上
+    pub fn encrypt(&self, pub_key: Point, msg: Point) -> (Point, Point) {
+        // 选取随机数k
+        let k = thread_rng().gen_range(1..self.n);
+        // enc = msg+k*Q
+        let r_point = self.scalar_multiplication(k, self.G);
+        let k_q = self.scalar_multiplication(k, pub_key);
+        println!("kQ = {:?}", k_q);
+        (r_point, self.point_addition(msg, k_q))
+    }
+
+    pub fn decrypt(&self, private_key: usize, cipher: (Point, Point)) -> Point {
+        let addition = self.scalar_multiplication(private_key, cipher.0);
+        println!("dR = {:?}", addition);
+        let neg_addition = Point {
+            y: ((addition.y as isize).wrapping_neg() % self.mod_value as isize
+                + self.mod_value as isize) as usize,
+            x: addition.x,
+        };
+        println!("-dR = {:?}", neg_addition);
+        self.point_addition(cipher.1, neg_addition)
     }
 }
 
@@ -178,5 +205,28 @@ mod tests {
         println!("key: {:?}, sig(r, s): {:?}", key, sig);
         let result = ecc29.verify(sig, msg, key.1);
         assert_eq!(result, true);
+    }
+
+    #[test]
+    fn encrypt_decrypt() {
+        let msg = 3;
+        let mod_val = 29;
+        let n = 37;
+        let mut points = vec![];
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        for i in 1..n + 1 + 1 {
+            let point = ecc29.scalar_multiplication(i, ecc29.G);
+            println!("{i}G: {:?}", point);
+            points.push(point);
+        }
+        let key = ecc29.generate_key_pair();
+        println!("key: {:?}", key);
+        // 正常是不会采用直接倍点的，因为求解原数是困难问题，这里只是为了演示方便
+        let msg_point = ecc29.scalar_multiplication(msg, ecc29.G);
+        let cipher = ecc29.encrypt(key.1, msg_point);
+        println!("cipher: ({:?}, {:?})", cipher.0, cipher.1);
+        let dec = ecc29.decrypt(key.0, cipher);
+        println!("plaintext: {:?}", dec);
+        assert_eq!(dec, msg_point);
     }
 }
