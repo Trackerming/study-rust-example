@@ -89,7 +89,7 @@ impl ECC {
         (random, point)
     }
 
-    pub fn sign(&self, private_key: usize, msg: usize) -> (usize, usize) {
+    pub fn sign(&self, private_key: usize, msg: usize) -> (usize, usize, bool) {
         // 选择随机数k
         let k = thread_rng().gen_range(1..self.n);
         println!("sign k: {:?}", k);
@@ -99,10 +99,10 @@ impl ECC {
         let r = r_point.x;
         // s = (k^-1)*(m+rd) mod n
         let s = (mod_exp(k, self.n - 2, self.n) * (msg + r * private_key)) % self.n;
-        (r, s)
+        (r, s, r_point.y % 2 == 0)
     }
 
-    pub fn verify(&self, sig: (usize, usize), msg: usize, public_key: Point) -> bool {
+    pub fn verify(&self, sig: (usize, usize, bool), msg: usize, public_key: Point) -> bool {
         // 计算 s^-1*(m*G+r*Q)
         let m_g = self.scalar_multiplication(msg, self.G);
         let r_q = self.scalar_multiplication(sig.0, public_key);
@@ -135,6 +135,98 @@ impl ECC {
         };
         println!("-dR = {:?}", neg_addition);
         self.point_addition(cipher.1, neg_addition)
+    }
+
+    fn legendre_symbol(a: usize, p: usize) -> isize {
+        let result = mod_exp(a, (p - 1) / 2, p);
+        if result == p - 1 {
+            -1
+        } else {
+            result as isize
+        }
+    }
+
+    fn tonelli_shanks(n: usize, p: usize) -> Option<usize> {
+        if ECC::legendre_symbol(n, p) != 1 {
+            // 如果 Legendre 符号不为 1，表示无解
+            return None;
+        }
+
+        let mut q = p - 1;
+        let mut s = 0;
+        while q % 2 == 0 {
+            q /= 2;
+            s += 1;
+        }
+
+        let mut z = 2;
+        while ECC::legendre_symbol(z, p) != -1 {
+            z += 1;
+        }
+
+        let mut c = mod_exp(z, q, p);
+        let mut r = mod_exp(n, (q + 1) / 2, p);
+        let mut t = mod_exp(n, q, p);
+
+        let mut m = s;
+        while t != 1 {
+            let mut i = 0;
+            let mut e = 2;
+            while mod_exp(t, e, p) != 1 {
+                i += 1;
+                e *= 2;
+            }
+
+            let b = mod_exp(c, 2usize.pow((m - i - 1) as u32), p);
+            r = (r * b) % p;
+            t = (t * b * b) % p;
+            c = (b * b) % p;
+            m = i;
+        }
+
+        Some(r)
+    }
+
+    fn find_y(&self, x: usize) -> Option<(usize, usize)> {
+        let y_square = (mod_exp(x, 3, self.mod_value) + self.a * x + self.b) % self.mod_value;
+        if ECC::legendre_symbol(y_square, self.mod_value) != 1 {
+            // 如果 Legendre 符号不为 1，表示无解
+            return None;
+        }
+
+        match ECC::tonelli_shanks(y_square, self.mod_value) {
+            Some(y_positive) => {
+                let y_negative = self.mod_value - y_positive;
+                println!("k point: positive_y = {y_positive}, negative_y = {y_negative}");
+                Some((y_positive, y_negative))
+            }
+            None => None,
+        }
+    }
+
+    pub fn recover_pub_key(&self, sig: (usize, usize, bool), msg: usize) -> Option<Point> {
+        let r_inv = mod_exp(sig.0, self.n - 2, self.n);
+        let hr_inv = msg * r_inv % self.n;
+        let sr_inv = sig.1 * r_inv % self.n;
+        let hr_point = self.scalar_multiplication(hr_inv, self.G);
+        let neg_point = Point {
+            x: hr_point.x,
+            y: ((hr_point.y as isize).wrapping_neg() % self.mod_value as isize
+                + self.mod_value as isize) as usize,
+        };
+        let mut pub_key_point = None;
+        // 恢复随机生成的点，必然存在，不存在的话签名的生成过程存在问题
+        if let Some((y_positive, y_negative)) = self.find_y(sig.0) {
+            let y;
+            y = if (sig.2 && y_positive % 2 == 0) || (!sig.2 && y_positive % 2 != 0) {
+                y_positive
+            } else {
+                y_negative
+            };
+            let sr_point = self.scalar_multiplication(sr_inv, Point { x: sig.0, y });
+            pub_key_point = Some(self.point_addition(sr_point, neg_point));
+        }
+        pub_key_point
     }
 }
 
@@ -228,5 +320,26 @@ mod tests {
         let dec = ecc29.decrypt(key.0, cipher);
         println!("plaintext: {:?}", dec);
         assert_eq!(dec, msg_point);
+    }
+
+    #[test]
+    fn recover_pub_key_test() {
+        let msg = 19;
+        let mod_val = 29;
+        let n = 37;
+        let mut points = vec![];
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        for i in 1..n + 1 + 1 {
+            let point = ecc29.scalar_multiplication(i, ecc29.G);
+            println!("{i}G: {:?}", point);
+            points.push(point);
+        }
+        let key = ecc29.generate_key_pair();
+        println!("key: {:?}", key);
+        let sig = ecc29.sign(key.0, msg);
+        println!("key: {:?}, sig(r, s): {:?}", key, sig);
+        let pub_key_point = ecc29.recover_pub_key(sig, msg);
+        println!("pub key point {:?}", pub_key_point);
+        assert_eq!(Some(key.1), pub_key_point);
     }
 }
