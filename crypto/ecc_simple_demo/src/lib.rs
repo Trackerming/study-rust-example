@@ -317,6 +317,11 @@ mod tests {
         println!("key: {:?}, sig(r, s): {:?}", key, sig);
         let result = ecc29.verify(sig, msg, key.1);
         assert_eq!(result, true);
+        // ecdsa签名的延展性
+        // (mG+r*Q)/(n-s) = (mG+rdG)/(n-s) = ((mG+rdG)*G)/(n-s)G = ((mG+rdG)*G)/s*G
+        // = ((mG+rdG)*G)/(k^-1*(m+dr)G) = k*G = R
+        let result2 = ecc29.verify((sig.0, ecc29.n - sig.1, sig.2), msg, key.1);
+        assert_eq!(result2, true);
     }
 
     #[test]
