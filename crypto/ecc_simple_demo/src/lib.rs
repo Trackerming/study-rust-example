@@ -4,7 +4,6 @@ pub mod point;
 
 use crate::point::{mod_exp, Point};
 use rand::{thread_rng, Rng};
-use std::intrinsics::sqrtf32;
 use std::ops::Deref;
 
 /// SEGMAX是啥？
@@ -138,6 +137,7 @@ impl ECC {
     }
 
     fn legendre_symbol(a: usize, p: usize) -> isize {
+        // a^(1/2*(p-1)) mod p
         let result = mod_exp(a, (p - 1) / 2, p);
         if result == p - 1 {
             -1
@@ -146,45 +146,65 @@ impl ECC {
         }
     }
 
-    fn tonelli_shanks(n: usize, p: usize) -> Option<usize> {
-        if ECC::legendre_symbol(n, p) != 1 {
-            // 如果 Legendre 符号不为 1，表示无解
+    fn tonelli_shanks(a: usize, p: usize) -> Option<usize> {
+        if ECC::legendre_symbol(a, p) != 1 {
+            // a 不是 p 的二次剩余
             return None;
         }
 
-        let mut q = p - 1;
-        let mut s = 0;
-        while q % 2 == 0 {
-            q /= 2;
-            s += 1;
+        let mut s = p - 1;
+        let mut e = 0;
+
+        while s % 2 == 0 {
+            s /= 2;
+            e += 1;
         }
 
-        let mut z = 2;
-        while ECC::legendre_symbol(z, p) != -1 {
-            z += 1;
+        // 在 Tonelli-Shanks 算法中，当 e = 0时候表示p-1是2的幂，可以简化计算，直接计算a^((s+1)/2)的模p值
+        if e == 0 {
+            // 当 e = 0 时，直接计算解
+            let x = mod_exp(a, (s + 1) / 2, p);
+            return Some(x);
         }
 
-        let mut c = mod_exp(z, q, p);
-        let mut r = mod_exp(n, (q + 1) / 2, p);
-        let mut t = mod_exp(n, q, p);
+        let mut n = 2;
+        while ECC::legendre_symbol(n, p) != -1 {
+            n += 1;
+        }
 
-        let mut m = s;
-        while t != 1 {
-            let mut i = 0;
-            let mut e = 2;
-            while mod_exp(t, e, p) != 1 {
-                i += 1;
-                e *= 2;
+        let mut x = mod_exp(a, (s + 1) / 2, p);
+        let mut b = mod_exp(a, s, p);
+        let mut g = mod_exp(n, s, p);
+
+        for _ in 0..e - 1 {
+            let mut temp = b;
+            let mut r = 0;
+
+            while temp != 1 {
+                temp = (temp * temp) % p;
+                r += 1;
             }
 
-            let b = mod_exp(c, 2usize.pow((m - i - 1) as u32), p);
-            r = (r * b) % p;
-            t = (t * b * b) % p;
-            c = (b * b) % p;
-            m = i;
+            // r等于0时候特殊处理
+            if r == 0 {
+                // 当 r = 0 时，直接计算解
+                let m = 2usize.pow(e - 1);
+                let t = mod_exp(g, m, p);
+                x = (x * t) % p;
+                return Some(x);
+            }
+
+            let m = 2usize.pow(e - r - 1);
+            let t = mod_exp(g, m, p);
+
+            let gsqr = mod_exp(g, 2, p);
+
+            g = t;
+            x = (x * t) % p;
+            b = (b * gsqr) % p;
         }
 
-        Some(r)
+        Some(x)
     }
 
     fn find_y(&self, x: usize) -> Option<(usize, usize)> {
