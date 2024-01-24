@@ -1,9 +1,10 @@
 use crate::btc::{private_2_wif_key, private_key_convert};
 use crate::cli::{
     BtcSubCommands, Cli, EthSubCommands,
-    SubCommands::{Btc, Decrypt, Encrypt, Eth, Reverse},
+    SubCommands::{Btc, Decrypt, Encrypt, Eth, Random, Reverse},
 };
 use anyhow::Result;
+use rand::{thread_rng, Rng};
 use tracing::{debug, error, info, warn};
 
 pub mod bip32;
@@ -31,6 +32,11 @@ pub async fn start(args: Cli) -> Result<()> {
             tag,
             aad,
         } => decrypt(cipher, password, iv, tag, aad),
+        Random { min, max } => {
+            let random = thread_rng().gen_range(min..max + 1);
+            info!("random: {:?}", random);
+            Ok(())
+        }
         Reverse { text, code } => reverse(text, code),
         Eth(EthSubCommands) => handle_eth_sub_command(EthSubCommands).await,
         Btc(BtcSubCommands) => handle_btc_sub_command(BtcSubCommands),

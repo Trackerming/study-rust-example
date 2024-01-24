@@ -123,6 +123,12 @@ pub(crate) enum SubCommands {
         #[arg(short = 'a', long, default_value = "aad")]
         aad: String,
     },
+    Random {
+        #[arg(short = 'i', long)]
+        min: usize,
+        #[arg(short = 'a', long)]
+        max: usize,
+    },
     Reverse {
         #[arg(short = 't', long, default_value = "text")]
         text: String,
