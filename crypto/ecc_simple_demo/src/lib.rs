@@ -348,6 +348,50 @@ mod tests {
     }
 
     #[test]
+    fn same_r_recover_private_key() {
+        // 正常都是hash化之后映射到椭圆曲线的域的范围
+        let msg = 88;
+        let mod_val = 29;
+        let n = 37;
+        let mut points = vec![];
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        for i in 1..n + 1 + 1 {
+            let point = ecc29.scalar_multiplication(i, ecc29.G);
+            println!("{i}G: {:?}", point);
+            points.push(point);
+        }
+        let key = ecc29.generate_key_pair();
+        let sig = ecc29.sign(key.0, msg);
+        let mut sig2;
+        let msg2 = 66;
+        // 模拟使用了相同的随机数
+        loop {
+            sig2 = ecc29.sign(key.0, msg2);
+            // 因为测试的域比较小
+            if sig2.0 == sig.0 && sig2.2 == sig.2 {
+                break;
+            }
+        }
+        println!("sig: {:?}, sig2: {:?}", sig, sig2);
+        // s1-s2 = k^(-1)(m1-m2)+k^-1*dr-k^-1*dr
+        let s1_s2 = (n + sig.1 - sig2.1) % n;
+        let msg_sub = (n + msg - msg2) % n;
+        let s1_s2_inv = mod_exp(s1_s2, n - 2, n);
+        println!("(s1-s2)^-1 = {s1_s2_inv}, m1 - m2 = {msg_sub}");
+        let k_compute = (msg_sub * s1_s2_inv) % n;
+        // 代入签名运算中 s = k^(-1)(m+dr) => d = (k*s-m)*r^-1
+        let r_inv = mod_exp(sig.0, n - 2, n);
+        let msg_mod = msg / n;
+        let ks_m_sub = (n * msg_mod + k_compute * sig.1 - msg) % n;
+        let d_compute = (ks_m_sub * r_inv) % n;
+        println!(
+            "random k: {k_compute}, private_key_compute: {d_compute}, key: {:?}",
+            key
+        );
+        assert_eq!(d_compute, key.0);
+    }
+
+    #[test]
     fn recover_pub_key_test() {
         let msg = 19;
         let mod_val = 29;
