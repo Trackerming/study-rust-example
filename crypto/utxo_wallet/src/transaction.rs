@@ -1,10 +1,14 @@
 use crate::wallet::{SignInfo, Wallet};
 use bitcoin::absolute::LockTime;
+use bitcoin::hex::DisplayHex;
 use bitcoin::psbt::PsbtSighashType;
 use bitcoin::secp256k1::{Message, Secp256k1};
 use bitcoin::sighash::SighashCache;
 use bitcoin::transaction::Version;
-use bitcoin::{Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness, sighash};
+use bitcoin::{
+    consensus::serialize, Address, Amount, EcdsaSighashType, OutPoint, PrivateKey, Psbt, ScriptBuf,
+    Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+};
 use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 
@@ -110,7 +114,7 @@ impl Tx {
         todo!();
     }
 
-    pub fn sign_with_key(&self, wallet: &Wallet) {
+    pub fn sign_with_key(&self, wallet: &Wallet) -> (String, String) {
         let mut tx = self.to_unsigned_tx();
         let secp = Secp256k1::new();
         //let mut tx;
@@ -137,11 +141,17 @@ impl Tx {
             let pk = private_key.public_key(&secp);
             unsafe {
                 input_ptr = input_ptr.offset(index as isize);
-                (*input_ptr).script_sig = ScriptBuf::builder().push_slice(&sig.serialize_compact()).push_key(&pk.into()).into_script();
+                (*input_ptr).script_sig = ScriptBuf::builder()
+                    .push_slice(&sig.serialize_compact())
+                    .push_key(&pk.into())
+                    .into_script();
             }
             tx = (*sighasher.into_transaction()).clone().into();
         }
-        println!("{:#?}", tx);
+        let tx_hash = tx.txid().to_string();
+        let raw_tx = serialize(&tx).to_lower_hex_string();
+        println!("{:#?}\ntxid: {:?}\nrawTx: {:?}", tx, tx_hash, raw_tx);
+        (tx_hash, raw_tx)
     }
 }
 
@@ -222,6 +232,11 @@ mod test {
         let mut tx = Tx::new(Version::ONE, LockTime::ZERO);
         tx.add_inputs(utxos);
         tx.add_outputs(base_elems);
-        tx.sign_with_key(&wallet);
+        let raw_tx = tx.sign_with_key(&wallet);
+        assert_eq!(
+            raw_tx.0,
+            "03690837e561a5a7b848b1336cad5dafacb475db3df34c10137c636ab1cbd3c1".to_string()
+        );
+        assert_eq!(raw_tx.1, "010000000159e299c1549157749240a495c48f35828da86183d7a879d8caabd3e9492a860301000000634036f514d6912bc7977f079457ca82d13d9b4323c1486a363864f09b0ee6743f5534b6094543d839ba302635d52c624563724b0115b2c593251b92606916860b522102c4e492b2b03b72af609c8b2d6083493de198a771c3e00c45d5ad067b92724c3ffeffffff0340420f00000000001976a9145d23771c146de5af0739da2cf6accc5c812a655488ac905f0100000000001976a91448fa5ccd4d37a65f9a2600304fb9eb470e50696e88ac60ae0a00000000001976a91448fa5ccd4d37a65f9a2600304fb9eb470e50696e88ac00000000".to_string());
     }
 }
