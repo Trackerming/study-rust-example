@@ -8,6 +8,7 @@ members = [
     "crypto",
     "./crypto/crypto_small_math",
     "./crypto/ecc_simple_demo",
+    "./crypto/rsa_simple_demo",
     "./crypto/utxo_wallet",
     "./crypto/des",
     "vsock-node",
