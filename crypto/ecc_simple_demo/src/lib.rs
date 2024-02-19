@@ -1,12 +1,10 @@
-#![feature(core_intrinsics)]
-
+#[warn(non_snake_case)]
 pub mod point;
 
 use crate::point::{mod_exp, Point};
 use rand::{thread_rng, Rng};
-use std::ops::Deref;
+use std::hash::{DefaultHasher, Hash, Hasher};
 
-/// SEGMAX是啥？
 /// 加解密的验证过程
 /// y^2 = x^3+ax+b
 /// 假设曲线为 y^2 = x^3 + x + 1 （mod 23）基点 G(0, 1)
@@ -30,7 +28,7 @@ impl ECC {
             a,
             b,
             mod_value,
-            n: n,
+            n,
         }
     }
 
@@ -111,6 +109,41 @@ impl ECC {
         let point = self.point_addition(mg_sinv, rq_sinv);
         println!("result: {:?}", point);
         point.x == sig.0
+    }
+
+    fn concat_point(&self, a: Point, b: Point) -> Point {
+        Point {
+            x: a.x + b.x % self.mod_value,
+            y: a.y + b.y % self.mod_value,
+        }
+    }
+
+    pub fn schnorr_sign(&self, private_key: usize, msg: Point) -> (Point, usize) {
+        let k = thread_rng().gen_range(1..self.n);
+        println!("schnorr sign k: {:?}", k);
+        let r_point = self.scalar_multiplication(k, self.G);
+        // 将两个点联结生成hash
+        let p = self.concat_point(msg, r_point);
+        let mut hasher = DefaultHasher::new();
+        let _ = &p.hash(&mut hasher);
+        let hash_result = (hasher.finish() % (self.n as u64)) as usize;
+        let sig = (k + hash_result * private_key) % self.n;
+        (r_point, sig)
+    }
+
+    pub fn schnorr_sig_verify(&self, public_key: Point, sig: (Point, usize), msg: Point) -> bool {
+        // sG = (k+h*d)*G = kG+h*Q = R+hQ
+        let s_g = self.scalar_multiplication(sig.1, self.G);
+        // R+Hash*Q
+        let p = self.concat_point(msg, sig.0);
+        let mut hasher = DefaultHasher::new();
+        let _ = &p.hash(&mut hasher);
+        let hash_result = (hasher.finish() % (self.n as u64)) as usize;
+        let r_point_add_hash_pub =
+            self.point_addition(sig.0, self.scalar_multiplication(hash_result, public_key));
+        println!("sG: {:?}", s_g);
+        println!("R+hash*Q: {:?}", r_point_add_hash_pub);
+        s_g.x == r_point_add_hash_pub.x && s_g.y == r_point_add_hash_pub.y
     }
 
     // msg被编写到曲线上
@@ -322,6 +355,20 @@ mod tests {
         // = ((mG+rdG)*G)/(k^-1*(m+dr)G) = k*G = R
         let result2 = ecc29.verify((sig.0, ecc29.n - sig.1, sig.2), msg, key.1);
         assert_eq!(result2, true);
+    }
+
+    #[test]
+    fn test_schnorr_sign() {
+        let msg_origin = 45;
+        let mod_val = 29;
+        let n = 37;
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        let key = ecc29.generate_key_pair();
+        let msg_point = ecc29.scalar_multiplication(msg_origin, ecc29.G);
+        let sig = ecc29.schnorr_sign(key.0, msg_point);
+        println!("sig: {:?}", sig);
+        let verify_result = ecc29.schnorr_sig_verify(key.1, sig, msg_point);
+        assert_eq!(verify_result, true);
     }
 
     #[test]
