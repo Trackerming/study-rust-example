@@ -146,6 +146,19 @@ impl ECC {
         s_g.x == r_point_add_hash_pub.x && s_g.y == r_point_add_hash_pub.y
     }
 
+    pub fn schnorr_mpc_key_shard_gen(&self, shard_num: usize) -> (Vec<usize>, Point) {
+        let mut shards = Vec::new();
+        let mut sum_key = 0;
+        for i in 0..shard_num {
+            let key = self.generate_key_pair();
+            sum_key = (sum_key + key.0) % self.n;
+            shards.push(key.0);
+        }
+        // 生成公共对外公钥
+        let point = self.scalar_multiplication(sum_key, self.G);
+        (shards, point)
+    }
+
     // msg被编写到曲线上
     pub fn encrypt(&self, pub_key: Point, msg: Point) -> (Point, Point) {
         // 选取随机数k
@@ -286,6 +299,7 @@ impl ECC {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ops::Deref;
 
     #[test]
     fn test_generate_point() {
@@ -369,6 +383,44 @@ mod tests {
         println!("sig: {:?}", sig);
         let verify_result = ecc29.schnorr_sig_verify(key.1, sig, msg_point);
         assert_eq!(verify_result, true);
+    }
+
+    #[test]
+    fn test_schnorr_sign_mpc() {
+        let shard_num = 2;
+        let msg_origin = 45;
+        let mod_val = 29;
+        let n = 37;
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        let mut points = vec![];
+        for i in 1..n + 1 + 1 {
+            let point = ecc29.scalar_multiplication(i, ecc29.G);
+            println!("{i}G: {:?}", point);
+            points.push(point);
+        }
+        let (shard_keys, pub_key): (Vec<usize>, Point) = ecc29.schnorr_mpc_key_shard_gen(shard_num);
+        println!("shard keys: {:?}, pub_key: {:?}", shard_keys, pub_key);
+        let msg_point = ecc29.scalar_multiplication(msg_origin, ecc29.G);
+        let mut sig = (Point { x: 0, y: 0 }, 0);
+        for i in 0..shard_num {
+            let shard_private_key = shard_keys.get(i).unwrap();
+            let shard_sig = ecc29.schnorr_sign(*shard_private_key, msg_point);
+            println!("shard sig: {:?}", shard_sig);
+            let shard_result = ecc29.schnorr_sig_verify(
+                ecc29.scalar_multiplication(*shard_private_key, ecc29.G),
+                shard_sig,
+                msg_point,
+            );
+            assert_eq!(shard_result, true);
+            // 对签名数据进行同态运算
+            sig.0 = ecc29.point_addition(sig.0, shard_sig.0);
+            sig.1 = (sig.1 + shard_sig.1) % ecc29.n;
+            println!("sig: {:?}", sig);
+        }
+
+        // 验证合并的签名是否符合预期的公钥
+        let result = ecc29.schnorr_sig_verify(pub_key, sig, msg_point);
+        assert_eq!(result, true);
     }
 
     #[test]
