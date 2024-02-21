@@ -195,6 +195,8 @@ mod test {
             100000000000000000,
             0x05,
             None,
+            None,
+            None
         ));
     }
 
@@ -208,6 +210,8 @@ mod test {
             100000,
             0x05,
             Some("0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc".to_string()),
+            None,
+            None
         ));
     }
 }
