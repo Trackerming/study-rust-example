@@ -17,6 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
+      with:
+        toolchain: nightly
       run: cargo build --no-default-features --workspace --exclude vsock-node --exclude study-practice
     - name: Run tests
+      with:
+        toolchain: nightly
       run: cargo test --no-default-features --workspace --exclude vsock-node --exclude study-practice
