@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --exclude vsock-node study-practice
+      run: cargo build --exclude vsock-node 
     - name: Run tests
-      run: cargo test --exclude vsock-node study-practice 
+      run: cargo test --exclude vsock-node
