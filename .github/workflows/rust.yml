@@ -26,8 +26,8 @@ jobs:
     - name: Build
       uses: actions-rs/cargo@v1
       with:
-        command: build --no-default-features --workspace --exclude vsock-node --exclude study-practice
+        command: cargo build --no-default-features --workspace --exclude vsock-node --exclude study-practice
     - name: Run tests
       uses: actions-rs/cargo@v1
       with:
-        command: test --no-default-features --workspace --exclude vsock-node --exclude study-practice
+        command: cargo test --no-default-features --workspace --exclude vsock-node --exclude study-practice
