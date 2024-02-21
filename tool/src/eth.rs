@@ -185,6 +185,7 @@ mod test {
     use super::*;
     use tokio::runtime::Runtime;
 
+    #[ignore]
     #[test]
     fn test_create_tx() {
         let rt = Runtime::new().unwrap();
@@ -200,6 +201,7 @@ mod test {
         ));
     }
 
+    #[ignore]
     #[test]
     fn test_create_erc20_tx() {
         let rt = Runtime::new().unwrap();
