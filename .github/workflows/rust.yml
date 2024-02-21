@@ -20,9 +20,11 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-      run: cargo build --no-default-features --workspace --exclude vsock-node --exclude study-practice
+        command: build --no-default-features --workspace --exclude vsock-node --exclude study-practice
+      #run: cargo build
     - name: Run tests
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-      run: cargo test --no-default-features --workspace --exclude vsock-node --exclude study-practice
+        command: test --no-default-features --workspace --exclude vsock-node --exclude study-practice
+      #run: cargo test --no-default-features --workspace --exclude vsock-node --exclude study-practice
