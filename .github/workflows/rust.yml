@@ -11,6 +11,7 @@ env:
 
 jobs:
   build:
+    name: Build
 
     runs-on: macos-latest
 
@@ -28,8 +29,23 @@ jobs:
       with:
         command: build
         args: --no-default-features --workspace --exclude vsock-node --exclude study-practice
-    - name: Run tests
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --no-default-features --workspace --exclude vsock-node --exclude study-practice
+
+  test:
+     name: Test
+
+     runs-on: macos-latest
+
+     steps:
+      # 详见 https://github.com/marketplace/actions/rust-toolchain#example-workflow
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+      - name: Runtests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --workspace --exclude vsock-node --exclude study-practice
