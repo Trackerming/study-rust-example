@@ -15,16 +15,19 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    # 详见 https://github.com/marketplace/actions/rust-toolchain#example-workflow
+    - uses: actions/checkout@v2
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
     - name: Build
-      uses: actions-rs/toolchain@v1
+      uses: actions-rs/cargo@v1
       with:
-        toolchain: nightly
         command: build --no-default-features --workspace --exclude vsock-node --exclude study-practice
-      #run: cargo build
     - name: Run tests
-      uses: actions-rs/toolchain@v1
+      uses: actions-rs/cargo@v1
       with:
-        toolchain: nightly
         command: test --no-default-features --workspace --exclude vsock-node --exclude study-practice
-      #run: cargo test --no-default-features --workspace --exclude vsock-node --exclude study-practice
