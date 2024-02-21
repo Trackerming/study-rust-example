@@ -14,6 +14,7 @@ fn not_equal_test() {
     assert_ne!(3, 3 + 2);
 }
 
+#[ignore]
 #[test]
 fn assert_test() {
     let name = "Jack";

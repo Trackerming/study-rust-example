@@ -151,7 +151,7 @@ pub mod data_types {
             print!("{ele} ");
         }
         println!();
-        for num in (0..a1.len()) {
+        for num in 0..a1.len() {
             let ele = a1[num];
             print!("a1[{num}]: {ele} ");
         }

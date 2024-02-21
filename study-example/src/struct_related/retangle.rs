@@ -3,14 +3,15 @@
 //
 #[derive(Debug)]
 pub struct Rectangle {
-    width: i32,
-    height: i32,
+    pub width: i32,
+    pub height: i32,
 }
 
 impl Rectangle {
     /// 计算矩形的面积
     /// - 示例如下
     /// ```
+    ///     use study_example::retangle::Rectangle;
     ///     let mut rect = Rectangle {
     ///         width: 12,
     ///         height: 8,
@@ -25,6 +26,7 @@ impl Rectangle {
     /// **move了所有权，调用之后，后续该实例就没法使用；**
     /// - 示例如下
     /// ```
+    ///     use study_example::retangle::Rectangle;
     ///     let mut rect = Rectangle {
     ///         width: 12,
     ///         height: 8,
@@ -38,6 +40,7 @@ impl Rectangle {
     /// 更新矩形的宽
     /// - 示例如下
     /// ```
+    ///     use study_example::retangle::Rectangle;
     ///     let mut rect = Rectangle {
     ///         width: 12,
     ///         height: 8,
@@ -51,6 +54,7 @@ impl Rectangle {
     /// 判断矩形的宽是否合法
     /// - 示例如下
     /// ```
+    ///     use study_example::retangle::Rectangle;
     ///     let mut rect = Rectangle {
     ///         width: 12,
     ///         height: 8,
@@ -59,16 +63,16 @@ impl Rectangle {
     ///         println!("width valid.");
     ///     }
     ///
-    fn valid_width(self: &Self) -> bool {
+    pub fn valid_width(self: &Self) -> bool {
         self.width > 0
     }
 
     /// 生成正方形
     /// - 示例如下
     /// ```
+    /// use study_example::retangle::Rectangle;
     /// let square_val = Rectangle::square(10);
     /// println!("square: {:?}", square_val);
-    ///
     // Associated function，类似于静态方法？
     pub fn square(size: i32) -> Self {
         Self {
