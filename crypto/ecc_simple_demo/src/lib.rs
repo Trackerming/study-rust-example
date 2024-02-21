@@ -123,7 +123,8 @@ impl ECC {
         println!("schnorr sign k: {:?}", k);
         let r_point = self.scalar_multiplication(k, self.G);
         // 将两个点联结生成hash
-        let p = self.concat_point(msg, r_point);
+        // let p = self.concat_point(msg, r_point);
+        let p = msg;
         let mut hasher = DefaultHasher::new();
         let _ = &p.hash(&mut hasher);
         let hash_result = (hasher.finish() % (self.n as u64)) as usize;
@@ -135,14 +136,18 @@ impl ECC {
         // sG = (k+h*d)*G = kG+h*Q = R+hQ
         let s_g = self.scalar_multiplication(sig.1, self.G);
         // R+Hash*Q
-        let p = self.concat_point(msg, sig.0);
+        // let p = self.concat_point(msg, sig.0);
+        let p = msg;
         let mut hasher = DefaultHasher::new();
         let _ = &p.hash(&mut hasher);
         let hash_result = (hasher.finish() % (self.n as u64)) as usize;
-        let r_point_add_hash_pub =
-            self.point_addition(sig.0, self.scalar_multiplication(hash_result, public_key));
+        let hash_pub_key_mul = self.scalar_multiplication(hash_result, public_key);
+        let r_point_add_hash_pub = self.point_addition(sig.0, hash_pub_key_mul);
         println!("sG: {:?}", s_g);
-        println!("R+hash*Q: {:?}", r_point_add_hash_pub);
+        println!(
+            "R+hash*Q: {:?}, hash*Q: {:?}， hash: {hash_result}",
+            r_point_add_hash_pub, hash_pub_key_mul
+        );
         s_g.x == r_point_add_hash_pub.x && s_g.y == r_point_add_hash_pub.y
     }
 
