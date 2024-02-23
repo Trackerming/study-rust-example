@@ -54,6 +54,8 @@ pub enum EthSubCommands {
         value: u128,
         #[arg(short = 'i', long)]
         chain_id: u8,
+        #[arg(short = 'b', long)]
+        is_broadcast: bool,
         #[arg(short = 'c', long)]
         contract_address: Option<String>,
         #[arg(short = 'p', long)]

@@ -25,6 +25,7 @@ pub async fn create_transaction(
     to: String,
     value: u128,
     chain_id: u8,
+    is_broadcast: bool,
     contract: Option<String>,
     gas_price: Option<u128>,
     gas_limit: Option<u128>,
@@ -72,8 +73,10 @@ pub async fn create_transaction(
     let sig = client.signer().sign_transaction(&tx_request).await.unwrap();
     let tx = tx_request.rlp_signed(&sig);
     info!("tx: {:?}", tx);
-    let pending_tx = client.provider().send_raw_transaction(tx).await.unwrap();
-    info!("txHash: {:?}", pending_tx.tx_hash());
+    if is_broadcast {
+        let pending_tx = client.provider().send_raw_transaction(tx).await.unwrap();
+        info!("txHash: {:?}", pending_tx.tx_hash());
+    }
     Ok(())
 }
 
@@ -195,9 +198,10 @@ mod test {
             "0x9BF5a8AF3333e2bF300FB00A0B7B8aDddc90dd43".to_string(),
             100000000000000000,
             0x05,
+            false,
             None,
             None,
-            None
+            None,
         ));
     }
 
@@ -211,9 +215,10 @@ mod test {
             "0x9BF5a8AF3333e2bF300FB00A0B7B8aDddc90dd43".to_string(),
             100000,
             0x05,
+            false,
             Some("0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc".to_string()),
             None,
-            None
+            None,
         ));
     }
 }
