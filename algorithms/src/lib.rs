@@ -5,3 +5,5 @@ pub mod array_sort;
 pub mod link_list_iterator;
 pub mod repeat_of_array;
 pub mod tree_iterator;
+
+pub mod fibonacci_list;
