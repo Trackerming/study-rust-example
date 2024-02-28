@@ -515,4 +515,19 @@ mod tests {
         println!("pub key point {:?}", pub_key_point);
         assert_eq!(Some(key.1), pub_key_point);
     }
+
+    #[test]
+    fn diffie_hellman_exchange_test() {
+        // 初始化曲线参数
+        let mod_val = 29;
+        let n = 37;
+        let ecc29 = ECC::new(Point { x: 2, y: 6 }, 4, 20, mod_val, n);
+        // 模拟2方生成各自的密钥对 bob:a aG alice b bG
+        let bob_key_pair = ecc29.generate_key_pair();
+        let alice_key_pair = ecc29.generate_key_pair();
+        // bob 和 alice分别 恢复出公共的公钥 ab*G
+        let com_pub_key_bob = ecc29.scalar_multiplication(bob_key_pair.0, alice_key_pair.1);
+        let com_pub_key_alice = ecc29.scalar_multiplication(alice_key_pair.0, bob_key_pair.1);
+        assert_eq!(com_pub_key_bob, com_pub_key_alice);
+    }
 }
