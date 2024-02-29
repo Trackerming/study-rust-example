@@ -529,5 +529,6 @@ mod tests {
         let com_pub_key_bob = ecc29.scalar_multiplication(bob_key_pair.0, alice_key_pair.1);
         let com_pub_key_alice = ecc29.scalar_multiplication(alice_key_pair.0, bob_key_pair.1);
         assert_eq!(com_pub_key_bob, com_pub_key_alice);
+        // 然后使用得到的共同密钥进行对称加解密，比如用AES算法
     }
 }

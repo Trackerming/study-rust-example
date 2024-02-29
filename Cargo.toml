@@ -10,6 +10,7 @@ members = [
     "./crypto/ecc_simple_demo",
     "./crypto/rsa_simple_demo",
     "./crypto/utxo_wallet",
+    "./crypto/zero_knowledge",
     "./crypto/des",
     "vsock-node",
     "async-web-server",
