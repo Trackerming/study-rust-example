@@ -7,3 +7,4 @@ edition.workspace = true
 
 [dependencies]
 rand = "0.8.5"
+crypto_util = {path = "../crypto_util"}

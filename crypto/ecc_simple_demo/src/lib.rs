@@ -1,7 +1,7 @@
 #[warn(non_snake_case)]
-pub mod point;
 
-use crate::point::{mod_exp, Point};
+use crypto_util::point::Point;
+use crypto_util::base_compute::mod_exp;
 use rand::{thread_rng, Rng};
 use std::hash::{DefaultHasher, Hash, Hasher};
 

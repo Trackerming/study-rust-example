@@ -6,6 +6,7 @@ members = [
     "web-server",
     "study-practice",
     "crypto",
+    "./crypto/crypto_util",
     "./crypto/crypto_small_math",
     "./crypto/ecc_simple_demo",
     "./crypto/rsa_simple_demo",

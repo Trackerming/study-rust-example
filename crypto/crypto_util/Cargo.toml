@@ -1,0 +1,6 @@
+[package]
+name = "crypto_util"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

@@ -2,7 +2,11 @@
  * 判断是否是素数，因为这里是简单的演示不考虑实际的大质数，所以可以这样实现
 */
 use rand::{thread_rng, Rng};
+use crypto_util::base_compute::mod_exp;
 
+/*
+ * 只能用在较小域的范围
+*/
 pub fn is_prime(val: usize) -> bool {
     for i in 1..val {
         if val % i == 0 && i != 1 {
@@ -12,6 +16,9 @@ pub fn is_prime(val: usize) -> bool {
     true
 }
 
+/*
+ * 只能用在较小域的范围
+*/
 pub fn mod_opposite(val: usize, mod_val: usize) -> usize {
     // opposite * val  = 1+k*mod_val
     let mut i = 0;
@@ -26,23 +33,6 @@ pub fn mod_opposite(val: usize, mod_val: usize) -> usize {
         i += 1;
     }
     opp_val
-}
-
-pub fn mod_exp(base: usize, exponent: usize, modulus: usize) -> usize {
-    if modulus == 1 {
-        return 0;
-    }
-    let mut result = 1;
-    let mut base = base % modulus;
-    let mut exponent = exponent;
-    while exponent > 0 {
-        if exponent % 2 == 1 {
-            result = (result * base) % modulus;
-        }
-        exponent >>= 1;
-        base = (base * base) % modulus;
-    }
-    result
 }
 
 pub struct RSA {
