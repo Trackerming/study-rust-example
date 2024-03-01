@@ -10,12 +10,12 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 /// 假设曲线为 y^2 = x^3 + x + 1 （mod 23）基点 G(0, 1)
 /// mod_value和阶的关系；
 pub struct ECC {
-    G: Point,
-    a: usize,
-    b: usize,
+    pub G: Point,
+    pub a: usize,
+    pub b: usize,
     // 限定了x和y都只能在0～mod_value之间的取值范围
-    mod_value: usize,
-    n: usize,
+    pub mod_value: usize,
+    pub n: usize,
 }
 
 const A: usize = 1;
