@@ -2,7 +2,9 @@ use crate::bip32::{derive_private_by_path, derive_public_by_path, mnemonic_to_x_
 use crate::http_request::fetch_url;
 use crate::util::u8_array_convert_string;
 use anyhow::Result;
+use bip32::secp256k1::elliptic_curve::weierstrass::add;
 use bip32::{Prefix, PublicKey as Bip32PubKey};
+use clap::builder::Str;
 use crypto::digest::Digest;
 use crypto::sha3::Sha3;
 use ethers::abi::AbiEncode;
@@ -10,11 +12,13 @@ use ethers::types::transaction::eip2718::TypedTransaction;
 use ethers::utils::hex::ToHex;
 use ethers::{
     core::types::{Address, TransactionRequest},
+    etherscan::Client,
     prelude::*,
     signers::LocalWallet,
 };
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use serde_json::json;
+use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 use tracing::info;
@@ -180,6 +184,28 @@ pub async fn query_chain_info_by_address(
     fetch_url(url, serde_json::to_string(&json_data).unwrap())
         .await
         .unwrap();
+    Ok(())
+}
+
+pub async fn query_account_by_etherscan(
+    address: String,
+    api_key: String,
+    chain: u64,
+) -> Result<()> {
+    let client = Client::new(
+        Chain::try_from(chain).expect("chain try from {chain} failed"),
+        api_key,
+    )
+    .expect("client init failed.");
+    let address = address.as_str().parse()?;
+    // 获取链的原生币种余额
+    let native_balance = client.get_ether_balance_single(&address, None).await?;
+    // 查询指定token的价格
+    let price = client.eth_price().await?;
+    info!(
+        "address: {:?}, native token: {:?}, price: {:?}",
+        native_balance.account, native_balance.balance, price.ethusd
+    );
     Ok(())
 }
 

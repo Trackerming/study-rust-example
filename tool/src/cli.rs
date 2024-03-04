@@ -14,12 +14,12 @@ pub enum EthSubCommands {
     },
 
     ChainInfo {
-        #[arg(short = 's', long, default_value = "host")]
-        host: String,
+        #[arg(short = 's', long, default_value = "address")]
+        address: String,
         #[arg(short = 'k', long, default_value = "api_key")]
         api_key: String,
-        #[arg(short = 'a', long, default_value = "address")]
-        address: String,
+        #[arg(short = 'i', long)]
+        chain_id: u64,
     },
     Bip32 {
         #[arg(short = 's', long, default_value = "x_private_key")]

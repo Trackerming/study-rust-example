@@ -16,7 +16,7 @@ pub mod http_request;
 pub mod util;
 
 use crate::encrypt_decrypt::{decrypt, encrypt};
-use crate::eth::{private_key_to_address, pub_key_str_to_address, query_chain_info_by_address};
+use crate::eth::{private_key_to_address, pub_key_str_to_address, query_account_by_etherscan};
 
 pub async fn start(args: Cli) -> Result<()> {
     debug!("cli args: {:?}", args);
@@ -80,10 +80,10 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
         EthSubCommands::Sec2Address { private_key } => private_key_to_address(private_key),
         EthSubCommands::Pub2Address { public_key } => pub_key_str_to_address(public_key),
         EthSubCommands::ChainInfo {
-            host,
-            api_key,
             address,
-        } => query_chain_info_by_address(host, api_key, address).await,
+            api_key,
+            chain_id,
+        } => query_account_by_etherscan(address, api_key, chain_id).await,
         EthSubCommands::Bip32 {
             x_private_key,
             x_public_key,
