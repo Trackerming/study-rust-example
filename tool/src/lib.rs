@@ -12,6 +12,8 @@ pub mod btc;
 pub mod cli;
 pub mod encrypt_decrypt;
 pub mod eth;
+
+pub mod file_handle;
 pub mod http_request;
 pub mod util;
 
