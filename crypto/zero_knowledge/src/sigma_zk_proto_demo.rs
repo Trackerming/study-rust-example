@@ -41,7 +41,6 @@ impl SigmaZK {
 #[cfg(test)]
 mod sigma_zk_test {
     use super::*;
-    use std::ptr::eq;
 
     #[test]
     fn verify_sigma_zk() {

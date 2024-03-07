@@ -1,3 +1,4 @@
+use clap::builder::Str;
 use clap::{Args, Parser, Subcommand};
 use ethers::types::U128;
 
@@ -136,6 +137,20 @@ pub(crate) enum SubCommands {
         text: String,
         #[arg(short = 'c', long, default_value = "code")]
         code: String,
+    },
+    Log2Csv {
+        #[arg(short = 'i', long, default_value = "input.out")]
+        input_file: String,
+        #[arg(short = 'o', long, default_value = "output.csv")]
+        output_file: String,
+        #[arg(
+            short = 'r',
+            long,
+            default_value = "address: (.*?), BNB = (.*?), contractBalance :  BSC-USD,(.*?),BSC-ETH,(.*)"
+        )]
+        reg: String,
+        #[arg(short = 'k', long, default_value = "BSC")]
+        key_word: String,
     },
     #[command(subcommand)]
     Eth(EthSubCommands),

@@ -1,7 +1,7 @@
 use crate::btc::{private_2_wif_key, private_key_convert};
 use crate::cli::{
     BtcSubCommands, Cli, EthSubCommands,
-    SubCommands::{Btc, Decrypt, Encrypt, Eth, Random, Reverse},
+    SubCommands::{Btc, Decrypt, Encrypt, Eth, Log2Csv, Random, Reverse},
 };
 use anyhow::Result;
 use rand::{thread_rng, Rng};
@@ -19,6 +19,7 @@ pub mod util;
 
 use crate::encrypt_decrypt::{decrypt, encrypt};
 use crate::eth::{private_key_to_address, pub_key_str_to_address, query_account_by_etherscan};
+use crate::file_handle::log2_csv_file;
 
 pub async fn start(args: Cli) -> Result<()> {
     debug!("cli args: {:?}", args);
@@ -39,6 +40,12 @@ pub async fn start(args: Cli) -> Result<()> {
             info!("random: {:?}", random);
             Ok(())
         }
+        Log2Csv {
+            input_file,
+            output_file,
+            key_word,
+            reg,
+        } => log2_csv_file(input_file, output_file, key_word, reg),
         Reverse { text, code } => reverse(text, code),
         Eth(EthSubCommands) => handle_eth_sub_command(EthSubCommands).await,
         Btc(BtcSubCommands) => handle_btc_sub_command(BtcSubCommands),

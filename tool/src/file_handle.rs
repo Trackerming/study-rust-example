@@ -1,3 +1,4 @@
+use anyhow::Result as AnyResult;
 use csv::Writer;
 use regex::Regex;
 use serde::Deserialize;
@@ -49,8 +50,7 @@ pub fn format_line(line: String, reg: &str) -> Option<Account> {
     }
 }
 
-pub fn to_csv_file(path_str: &str, json_data: &str) -> Result<(), Box<dyn Error>> {
-    let accounts: Vec<Account> = serde_json::from_str(json_data)?;
+fn save_csv(accounts: Vec<Account>, path_str: &str) -> Result<(), Box<dyn Error>> {
     let file_path = Path::new(path_str);
     let mut writer = Writer::from_writer(File::create(file_path)?);
 
@@ -63,6 +63,29 @@ pub fn to_csv_file(path_str: &str, json_data: &str) -> Result<(), Box<dyn Error>
         ])?;
     }
     writer.flush()?;
+    Ok(())
+}
+
+pub fn to_csv_file(path_str: &str, json_data: &str) -> Result<(), Box<dyn Error>> {
+    let accounts: Vec<Account> = serde_json::from_str(json_data)?;
+    save_csv(accounts, path_str)?;
+    Ok(())
+}
+
+pub fn log2_csv_file(
+    input_file: String,
+    output_file: String,
+    key_word: String,
+    reg: String,
+) -> AnyResult<()> {
+    let lines = read_file_line(input_file.as_str(), key_word.as_str()).unwrap();
+    let mut accounts = vec![];
+    for line in lines {
+        if let Some(account) = format_line(line, reg.as_str()) {
+            accounts.push(account);
+        }
+    }
+    save_csv(accounts, output_file.as_str()).expect("save csv file failed");
     Ok(())
 }
 
