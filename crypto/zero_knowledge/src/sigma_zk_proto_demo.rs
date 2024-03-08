@@ -1,5 +1,5 @@
 use crypto_util::point::Point;
-use ecc_simple_demo::ECC;
+use ecc_simple_demo::ecc::ECC;
 use rand::{thread_rng, Rng};
 
 /// Sigma 零知识证明:知道秘密s ，且与公开输入 Q 满足离散对数关系 Q =w*G
