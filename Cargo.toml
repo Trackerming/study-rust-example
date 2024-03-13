@@ -9,6 +9,7 @@ members = [
     "./crypto/crypto_util",
     "./crypto/crypto_small_math",
     "./crypto/ecc_simple_demo",
+    "./crypto/jwt_demo",
     "./crypto/rsa_simple_demo",
     "./crypto/utxo_wallet",
     "./crypto/zero_knowledge",

@@ -1,8 +1,8 @@
 /*
  * 判断是否是素数，因为这里是简单的演示不考虑实际的大质数，所以可以这样实现
 */
-use rand::{thread_rng, Rng};
 use crypto_util::base_compute::mod_exp;
+use rand::{thread_rng, Rng};
 
 /*
  * 只能用在较小域的范围

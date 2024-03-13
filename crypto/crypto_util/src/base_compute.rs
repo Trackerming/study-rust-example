@@ -14,4 +14,3 @@ pub fn mod_exp(base: usize, exponent: usize, modulus: usize) -> usize {
     }
     result
 }
-
