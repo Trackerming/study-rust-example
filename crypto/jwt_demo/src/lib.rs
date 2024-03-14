@@ -1,7 +1,11 @@
 extern crate core;
 
+use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::jwk::AlgorithmParameters;
-use jsonwebtoken::{decode, decode_header, jwk, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{
+    decode, decode_header, encode, jwk, Algorithm, DecodingKey, EncodingKey, Header, Validation,
+};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -25,7 +29,9 @@ use std::str::FromStr;
 //  )
 // jwt常见字段详解
 //   jwt claims
-//    iss（issuer）、sub、aud、exp、nbf、iat、jti
+//    iss（issuer）、sub（subject）、aud(audience)、exp(expiration time)、nbf(not before)、iat(issued At)、jti（JWT ID）
+// Header
+//   typ（type）、cty（content type）
 
 pub fn auth(jwt: &str, token: &str, aud: &str) -> bool {
     let jwks: jwk::JwkSet = serde_json::from_str(jwt).unwrap();
@@ -63,6 +69,41 @@ pub fn auth(jwt: &str, token: &str, aud: &str) -> bool {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct Claims {
+    sub: String,
+    company: String,
+    exp: u64,
+}
+
+pub fn hs512_ser_encode(claims: &Claims, key: &[u8]) -> String {
+    let header = Header {
+        kid: Some("singing_key".to_owned()),
+        alg: Algorithm::HS512,
+        ..Default::default()
+    };
+    let token = match encode(&header, claims, &EncodingKey::from_secret(key)) {
+        Ok(t) => t,
+        Err(_) => panic!("encode error"),
+    };
+    token
+}
+
+pub fn hs512_deser_decode(token: String, key: &[u8]) -> (Header, Claims) {
+    let token_data = match decode::<Claims>(
+        &token,
+        &DecodingKey::from_secret(key),
+        &Validation::new(Algorithm::HS512),
+    ) {
+        Ok(c) => c,
+        Err(err) => match *err.kind() {
+            ErrorKind::InvalidToken => panic!("decode with invalid token."),
+            _ => panic!("decode other err: {:?}", err),
+        },
+    };
+    (token_data.header, token_data.claims)
+}
+
 #[cfg(test)]
 mod jwt_tests {
     use super::*;
@@ -76,5 +117,20 @@ mod jwt_tests {
         let audience: &str = "https://dev-duzyayk4.eu.auth0.com/api/v2/";
         let result = auth(jwks, token, audience);
         assert_eq!(result, true);
+    }
+
+    #[test]
+    fn hs512_works() {
+        let key = b"secret";
+        let my_claims = Claims {
+            sub: "subject example".to_owned(),
+            company: "JWTC".to_string(),
+            exp: 10000000000,
+        };
+        let token = hs512_ser_encode(&my_claims, key);
+        let (header, claim) = hs512_deser_decode(token, key);
+        println!("header: {:?}", header);
+        println!("claims: {:?}", claim);
+        assert_eq!(claim, my_claims);
     }
 }

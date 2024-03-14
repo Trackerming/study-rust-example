@@ -4311,6 +4311,7 @@ name = "jwt_demo"
 version = "0.2.2"
 dependencies = [
  "jsonwebtoken 9.2.0",
+ "serde",
  "serde_json",
 ]
 
