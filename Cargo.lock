@@ -2657,6 +2657,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "enc_dec"
+version = "0.2.2"
+dependencies = [
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
 name = "encase"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
