@@ -7,4 +7,5 @@ edition.workspace = true
 num-bigint = "0.4.4"
 num-integer = "0.1.46"
 num-traits = "0.2.18"
+rust-crypto = "0.2.36"
 

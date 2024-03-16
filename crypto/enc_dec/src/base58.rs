@@ -1,3 +1,5 @@
+use crypto::digest::Digest;
+use crypto::{ripemd160, sha2::Sha256};
 use num_integer::Integer;
 use num_traits::cast::ToPrimitive;
 // 编码原理：
@@ -61,6 +63,45 @@ pub fn decode(data: String) -> Vec<u8> {
     result
 }
 
+fn sha256_double(input: &[u8]) -> Vec<u8> {
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&input[..]);
+    let mut out = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut out);
+    let mut sha256 = Box::new(Sha256::new());
+    sha256.input(&out);
+    let mut result = vec![0u8; sha256.output_bytes()];
+    sha256.result(&mut result);
+    result
+}
+
+fn hex_string_to_bytes(hex_str: &str) -> Vec<u8> {
+    let mut bytes = Vec::new();
+    let mut hex_chars = hex_str.chars().peekable();
+    while let Some(high) = hex_chars.next() {
+        // 分别取出高位和低位的字符的数据
+        let high_digit = high.to_digit(16).expect("high Invalid hex character.") as u8;
+        let low = hex_chars.next().expect("Odd number of hex characters.");
+        let low_digit = low.to_digit(16).expect("low Invalid hex character.") as u8;
+        // 位操作合成一个完整字节
+        bytes.push((high_digit << 4) | low_digit);
+    }
+    bytes
+}
+
+pub fn generate_btc_address(pub_key_hash: &str) -> String {
+    let mut address_bytes: Vec<u8> = Vec::new();
+    // leading byte 0
+    address_bytes.push(0x00);
+    address_bytes.append(&mut hex_string_to_bytes(pub_key_hash));
+    // 计算校验和
+    let mut checksum = sha256_double(address_bytes.as_slice())[..4].to_vec();
+    address_bytes.append(&mut checksum);
+    assert_eq!(address_bytes.len(), 25);
+    // 进行编码
+    encode(address_bytes.as_slice())
+}
+
 #[cfg(test)]
 mod base58_tests {
     use super::*;
@@ -74,5 +115,13 @@ mod base58_tests {
         let decoded = decode(encoded_str);
         println!("Decoded data: {:?}", String::from_utf8_lossy(&decoded));
         assert_eq!(decoded, data.to_vec());
+    }
+
+    #[test]
+    fn test_btc_address_encode() {
+        let pub_key_hash = "37388911d9c9be6aa8f86d49c118bf34b63285e4";
+        let address = generate_btc_address(pub_key_hash);
+        println!("address: {}", address);
+        assert_eq!(address, "162ythfZpJb4ubNyYzADVPPQs5kSDKSVeU".to_string());
     }
 }
