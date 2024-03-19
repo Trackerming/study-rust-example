@@ -1,5 +1,4 @@
 use crate::hex_string_to_bytes;
-use std::char::ParseCharError;
 use std::error::Error;
 
 // bech32编码集
@@ -14,6 +13,7 @@ use std::error::Error;
 // 将数据分割为片段：将整体的数据分割为一系列的片段，每个片段包含特定数量的比特位。
 // 进行字符转换：将每个片段转换为对应的字符，使用Bech32字符表中的字符。
 // 拼接人类可读的部分和数据部分：将人类可读的部分和数据部分拼接在一起，以形成最终的Bech32编码。
+// 参考实现：https://github1s.com/sipa/bech32/blob/master/ref/javascript/bech32.js#L127
 const CHARSET: &'static str = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const ENCODING_POLYMOD_CONST: u32 = 1;
 
