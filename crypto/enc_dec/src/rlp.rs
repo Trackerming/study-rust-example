@@ -52,7 +52,10 @@ impl RLP {
         }
         let len = result.len();
         let length_encode = Self::encode_length(len, 192);
-        length_encode.into_iter().chain(result.into_iter()).collect()
+        length_encode
+            .into_iter()
+            .chain(result.into_iter())
+            .collect()
     }
 }
 

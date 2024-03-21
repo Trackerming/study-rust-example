@@ -3,6 +3,7 @@ extern crate core;
 pub mod base58;
 pub mod bech32;
 mod rlp;
+mod ssz;
 
 pub fn hex_string_to_bytes(hex_str: &str) -> Vec<u8> {
     let mut bytes = Vec::new();
