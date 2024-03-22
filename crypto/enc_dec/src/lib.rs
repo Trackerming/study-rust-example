@@ -2,6 +2,7 @@ extern crate core;
 
 pub mod base58;
 pub mod bech32;
+mod der;
 mod rlp;
 mod ssz;
 
