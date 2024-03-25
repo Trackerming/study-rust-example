@@ -1,4 +1,4 @@
-use crate::hex_string_to_bytes;
+use crate::{bit_convert, hex_string_to_bytes};
 use std::error::Error;
 
 // bech32编码集
@@ -19,40 +19,6 @@ const ENCODING_POLYMOD_CONST: u32 = 1;
 
 fn encode_u5(input: u8) -> char {
     CHARSET.chars().nth(input as usize).unwrap()
-}
-
-fn u8_convert_u5(input: &[u8], from: u32, to: u32, pad: bool) -> Vec<u8> {
-    if from > 8 || to > 8 {
-        panic!("convert `from` and `to` params greater than 8");
-    }
-    let mut acc: u32 = 0;
-    let mut bits: u32 = 0;
-    let mut ret: Vec<u8> = Vec::new();
-    // 转换之后的最大值
-    let max_v: u32 = (1 << to) - 1;
-    for &value in input {
-        let v = value as u32;
-        /*if v >> from != 0 {
-            return Err();
-        }*/
-        // 将当前字节读取到acc中并缓存之前的3个字节
-        acc = (acc << from) | v;
-        // 统计进入的bit位的个数
-        bits += from;
-        // bit位移动统计，当剩余的未转换的bit位依然比转换的目的位要大的时候进入循环并转换
-        while bits >= to {
-            bits -= to;
-            ret.push(((acc >> bits) & max_v) as u8);
-        }
-    }
-    if pad {
-        if bits > 0 {
-            ret.push(((acc << (to - bits)) & max_v) as u8);
-        }
-    } /*else if bits >= from || ((acc << (to - bits)) & max_v) != 0 {
-          return Err("invalid padding.");
-      }*/
-    ret
 }
 
 fn bech32_extend_hrp(hrp: &str) -> Vec<u8> {
@@ -123,7 +89,7 @@ pub fn bech32_encode(hrp: &str, data: &str) -> String {
     let data = hex_string_to_bytes(data);
     // 填充一个版本字节0
     let mut u5_bytes = vec![0];
-    u5_bytes.extend_from_slice(u8_convert_u5(data.as_slice(), 8, 5, true).as_slice());
+    u5_bytes.extend_from_slice(bit_convert(data.as_slice(), 8, 5, true).as_slice());
     let checksum = create_checksum(hrp, u5_bytes.as_slice());
     println!("checksum: {:?}", checksum);
     u5_bytes.extend_from_slice(checksum.as_slice());
@@ -140,19 +106,50 @@ pub fn bech32_encode(hrp: &str, data: &str) -> String {
     result
 }
 
+pub fn bech32_decode(encode_string: &str) -> Option<(String, Vec<u8>)> {
+    if let Some((hrp_bytes, data_bytes)) = encode_string.split_once('1') {
+        // 验证checksum
+        let mut u5_bytes: Vec<u8> = data_bytes
+            .chars()
+            .map(|b| CHARSET.find(b).unwrap() as u8)
+            .collect();
+        println!("{:?},{:?}", hrp_bytes, u5_bytes);
+        // 插入版本字节0
+        let (data_u5_bytes, checksum_u5_bytes) = u5_bytes.split_at(u5_bytes.len() - 6);
+        let checksum = create_checksum(hrp_bytes, data_u5_bytes);
+        assert_eq!(checksum, checksum_u5_bytes.to_vec());
+        let data = bit_convert(&data_u5_bytes[1..], 5, 8, true);
+        Some((hrp_bytes.to_string(), data))
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
-mod bech32_encode_test {
+mod bech32_enc_dec_test {
     use super::*;
 
     #[test]
     fn test_bech32_encode() {
-        let pub_key_str = "fab423b12a2f13ddb207dde536d8b183728859f1";
         let human_read_part = "bc";
-        let address = bech32_encode(human_read_part, pub_key_str);
+        let pub_key_hash_str = "fab423b12a2f13ddb207dde536d8b183728859f1";
+        let address = bech32_encode(human_read_part, pub_key_hash_str);
         assert_eq!(
             address,
             "bc1ql26z8vf29ufamvs8mhjndk93sdegsk03clpuh8".to_string()
         );
+    }
+
+    #[test]
+    fn test_bech32_decode() {
+        let pub_key_hash_str = "fab423b12a2f13ddb207dde536d8b183728859f1";
+        let address = "bc1ql26z8vf29ufamvs8mhjndk93sdegsk03clpuh8";
+        if let Some((hrp, data)) = bech32_decode(address) {
+            println!("hrp: {:?}", hrp);
+            println!("data: {:?}", data);
+            assert_eq!(hrp, "bc".to_string());
+            assert_eq!(data, hex_string_to_bytes(pub_key_hash_str));
+        }
     }
 
     #[test]
