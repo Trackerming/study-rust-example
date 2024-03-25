@@ -83,6 +83,7 @@ impl Signature {
 #[cfg(test)]
 mod der_tests {
     use super::*;
+    use crate::hex_string_to_bytes;
 
     #[test]
     fn test_sig_der_encode_decode() {
@@ -96,6 +97,34 @@ mod der_tests {
         println!("sig encode DER: {:?}", enc_der);
         assert_eq!(enc_der, vec![48, 8, 2, 2, 48, 66, 2, 2, 96, 137]);
         if let Some(sig) = Signature::decode_der(enc_der.as_slice()) {
+            assert_eq!(sig.r, r);
+            assert_eq!(sig.s, s);
+        }
+    }
+
+    #[test]
+    fn test_sig_btc_sig() {
+        let sig = "304402203910bb05714f5eeda38ecf5d437bedede4c28584f0e4a8316158dbef0003d597022013d2319d346fc72c95b4d0a2c6a183e4896d74aadbf550288145af5bf24d8b0d01";
+        let sig_bytes = hex_string_to_bytes(sig);
+        println!("sig bytes len {:?}: {:?}", sig_bytes.len(), sig_bytes);
+        let r = vec![
+            57, 16, 187, 5, 113, 79, 94, 237, 163, 142, 207, 93, 67, 123, 237, 237, 228, 194, 133,
+            132, 240, 228, 168, 49, 97, 88, 219, 239, 0, 3, 213, 151,
+        ];
+        let s = vec![
+            19, 210, 49, 157, 52, 111, 199, 44, 149, 180, 208, 162, 198, 161, 131, 228, 137, 109,
+            116, 170, 219, 245, 80, 40, 129, 69, 175, 91, 242, 77, 139, 13,
+        ];
+        let sig = Signature {
+            r: r.clone(),
+            s: s.clone(),
+        };
+        let enc_sig = sig.encode_der();
+        // encode 的sig末尾多加了一个与签名本身无关的0x01字节
+        assert_eq!(enc_sig, sig_bytes[..sig_bytes.len() - 1]);
+        if let Some(sig) = Signature::decode_der(&sig_bytes) {
+            println!("sig r: {:?}", sig.r);
+            println!("sig s: {:?}", sig.s);
             assert_eq!(sig.r, r);
             assert_eq!(sig.s, s);
         }
