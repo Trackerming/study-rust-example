@@ -59,6 +59,47 @@ impl RLP {
     }
 }
 
+pub fn decode(data: &[u8]) -> Result<Vec<u8>, &'static str> {
+    if data.is_empty() {
+        return Err("empty RLP data");
+    }
+    // 单字节数据
+    if data[0] <= 0x7f {
+        return Ok(vec![data[0]]);
+    }
+    // 如果第一个数据在[0x80, 0xb7]范围内，表示是一个短字符串
+    if data[0] <= 0xb7 {
+        let length = (data[0] - 0x80) as usize;
+        // 检查数据是否包含足够的字节
+        if data.len() < length + 1 {
+            return Err("Invalid RLP data.");
+        }
+        return Ok(data[1..length + 1].to_vec());
+    }
+    // 如果数据的第一个字节的值在 [0xb8, 0xbf] 范围内，表示它是一个长字符串
+    if data[0] <= 0xbf {
+        let length = (data[0] - 0xb7) as usize;
+        // 检查数据是否包含足够的字节
+        if data.len() < length + 1 {
+            return Err("Invalid RLP data.");
+        }
+        let len = bytes_to_usize(&data[1..length + 1]);
+        if data.len() < length + 1 + len {
+            return Err("Invalid RLP data.");
+        }
+        return Ok(data[length + 1..length + 1 + len].to_vec());
+    }
+    return Err("Invalid RLP data");
+}
+
+pub fn bytes_to_usize(data: &[u8]) -> usize {
+    let mut result = 0usize;
+    for &byte in data {
+        result = result << 8 + byte as usize;
+    }
+    result
+}
+
 #[cfg(test)]
 mod test_rlp {
     use super::*;
@@ -79,5 +120,15 @@ mod test_rlp {
         let enc = RLP::encode_list(encode_tx);
         println!("{:?}", enc);
         assert_eq!(enc, vec![200, 131, 1, 2, 3, 131, 4, 5, 6])
+    }
+
+    #[test]
+    fn test_decode(){
+        // RLP编码的字节数组
+        let rlp_data: [u8; 6] = [0x83, b'c', b'a', b't', 0x01, 0x02];
+        let data = decode(&rlp_data).unwrap();
+        println!("decode data: {:?}", data);
+        // 因为目前还没有考虑递归循环处理，所以只是解码出第一组cat的u8数组
+        assert_eq!(data, vec![99, 97, 116]);
     }
 }
