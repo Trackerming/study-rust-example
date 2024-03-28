@@ -1,4 +1,4 @@
-use std::io;
+use crate::read_u8;
 use std::io::{Cursor, Read};
 
 pub struct Signature {
@@ -39,41 +39,35 @@ impl Signature {
         result
     }
 
-    fn read_u8(cursor: &mut Cursor<&[u8]>) -> io::Result<u8> {
-        let mut buffer_u8: [u8; 1] = [0; 1];
-        cursor.read_exact(&mut buffer_u8)?;
-        Ok(buffer_u8[0])
-    }
-
     pub fn decode_der(der_bytes: &[u8]) -> Option<Signature> {
         let mut cursor = Cursor::new(der_bytes);
         let mut r_len = 0;
         let mut s_len = 0;
 
         // 检查是否为SEQUENCE结构
-        if Self::read_u8(&mut cursor).unwrap() != 0x30 {
+        if read_u8(&mut cursor).unwrap() != 0x30 {
             return None;
         }
-        let mut len = Self::read_u8(&mut cursor).unwrap() as usize;
+        let mut len = read_u8(&mut cursor).unwrap() as usize;
         if len > 127 {
-            let len_bytes = Self::read_u8(&mut cursor).unwrap() as usize - 128;
+            let len_bytes = read_u8(&mut cursor).unwrap() as usize - 128;
             for _ in 0..len_bytes {
                 len <<= 8;
-                len += Self::read_u8(&mut cursor).unwrap() as usize;
+                len += read_u8(&mut cursor).unwrap() as usize;
             }
         }
         // 读取r
-        if Self::read_u8(&mut cursor).unwrap() != 0x02 {
+        if read_u8(&mut cursor).unwrap() != 0x02 {
             return None;
         }
-        r_len = Self::read_u8(&mut cursor).unwrap() as usize;
+        r_len = read_u8(&mut cursor).unwrap() as usize;
         let mut r = vec![0; r_len];
         cursor.read_exact(&mut r).ok()?;
         // 读取s
-        if Self::read_u8(&mut cursor).unwrap() != 0x02 {
+        if read_u8(&mut cursor).unwrap() != 0x02 {
             return None;
         }
-        s_len = Self::read_u8(&mut cursor).unwrap() as usize;
+        s_len = read_u8(&mut cursor).unwrap() as usize;
         let mut s = vec![0; s_len];
         cursor.read_exact(&mut s).ok()?;
         Some(Signature { r, s })

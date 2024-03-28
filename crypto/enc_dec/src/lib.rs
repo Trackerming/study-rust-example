@@ -1,4 +1,8 @@
+#![feature(cursor_remaining)]
 extern crate core;
+
+use std::io;
+use std::io::{Cursor, Read};
 
 pub mod base58;
 pub mod bech32;
@@ -52,4 +56,10 @@ pub fn bit_convert(input: &[u8], from: u32, to: u32, pad: bool) -> Vec<u8> {
           return Err("invalid padding.");
       }*/
     ret
+}
+
+pub fn read_u8(cursor: &mut Cursor<&[u8]>) -> io::Result<u8> {
+    let mut buffer_u8: [u8; 1] = [0; 1];
+    cursor.read_exact(&mut buffer_u8)?;
+    Ok(buffer_u8[0])
 }

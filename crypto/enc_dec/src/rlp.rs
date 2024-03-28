@@ -15,6 +15,10 @@
 //  对于每个元素，先编码其内容，然后根据内容的长度编码规则编码其长度。
 //  将每个元素的长度编码和内容编码连接起来，就得到了列表的编码。
 
+use crate::read_u8;
+use std::io::{Cursor, Read};
+use std::ops::DerefMut;
+
 pub struct RLP {}
 
 impl RLP {
@@ -59,35 +63,43 @@ impl RLP {
     }
 }
 
-pub fn decode(data: &[u8]) -> Result<Vec<u8>, &'static str> {
-    if data.is_empty() {
-        return Err("empty RLP data");
-    }
+pub fn decode(mut cursor: &mut Cursor<&[u8]>) -> Result<Vec<u8>, &'static str> {
     // 单字节数据
-    if data[0] <= 0x7f {
-        return Ok(vec![data[0]]);
+    let first_byte = read_u8(cursor.deref_mut()).unwrap();
+    if first_byte <= 0x7f {
+        return Ok(vec![first_byte]);
     }
     // 如果第一个数据在[0x80, 0xb7]范围内，表示是一个短字符串
-    if data[0] <= 0xb7 {
-        let length = (data[0] - 0x80) as usize;
+    if first_byte <= 0xb7 {
+        let length = (first_byte - 0x80) as usize;
         // 检查数据是否包含足够的字节
-        if data.len() < length + 1 {
+        if cursor.remaining_slice().len() < length + 1 {
             return Err("Invalid RLP data.");
         }
-        return Ok(data[1..length + 1].to_vec());
+        let mut buf = vec![0; length];
+        cursor.read_exact(&mut buf).expect("read short str.");
+        return Ok(buf);
     }
     // 如果数据的第一个字节的值在 [0xb8, 0xbf] 范围内，表示它是一个长字符串
-    if data[0] <= 0xbf {
-        let length = (data[0] - 0xb7) as usize;
+    if first_byte <= 0xbf {
+        let length = (first_byte - 0xb7) as usize;
         // 检查数据是否包含足够的字节
-        if data.len() < length + 1 {
+        if cursor.remaining_slice().len() < length + 1 {
             return Err("Invalid RLP data.");
         }
-        let len = bytes_to_usize(&data[1..length + 1]);
-        if data.len() < length + 1 + len {
+        let mut len_bytes = vec![0; length];
+        cursor
+            .read_exact(&mut len_bytes)
+            .expect("read long str length bytes");
+        let len = bytes_to_usize(&len_bytes);
+        if cursor.remaining_slice().len() < length + 1 + len {
             return Err("Invalid RLP data.");
         }
-        return Ok(data[length + 1..length + 1 + len].to_vec());
+        let mut data_bytes = vec![0; len];
+        cursor
+            .read_exact(&mut data_bytes)
+            .expect("read long str data");
+        return Ok(data_bytes);
     }
     return Err("Invalid RLP data");
 }
@@ -100,9 +112,19 @@ pub fn bytes_to_usize(data: &[u8]) -> usize {
     result
 }
 
+pub fn decoder(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> {
+    let mut cursor = Cursor::new(data);
+    let mut result = vec![];
+    while !cursor.is_empty() {
+        result.push(decode(&mut cursor).unwrap());
+    }
+    Ok(result)
+}
+
 #[cfg(test)]
 mod test_rlp {
     use super::*;
+    use crate::hex_string_to_bytes;
 
     #[test]
     fn test_encode_item() {
@@ -123,12 +145,15 @@ mod test_rlp {
     }
 
     #[test]
-    fn test_decode(){
+    fn test_decode() {
         // RLP编码的字节数组
         let rlp_data: [u8; 6] = [0x83, b'c', b'a', b't', 0x01, 0x02];
-        let data = decode(&rlp_data).unwrap();
+        let data = decode(&mut Cursor::new(&rlp_data)).unwrap();
         println!("decode data: {:?}", data);
         // 因为目前还没有考虑递归循环处理，所以只是解码出第一组cat的u8数组
         assert_eq!(data, vec![99, 97, 116]);
+        let result = decoder(&rlp_data).unwrap();
+        println!("decoder data: {:?}", result);
+        assert_eq!(result, vec![vec![99, 97, 116], vec![1], vec![2]]);
     }
 }
