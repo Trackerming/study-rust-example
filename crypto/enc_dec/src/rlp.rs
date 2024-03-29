@@ -14,8 +14,10 @@
 //  如果数据是一个列表，那么需要递归地对列表中的每个元素进行编码。
 //  对于每个元素，先编码其内容，然后根据内容的长度编码规则编码其长度。
 //  将每个元素的长度编码和内容编码连接起来，就得到了列表的编码。
+// 具体关于rlp的定义，详细见：https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
 
 use crate::read_u8;
+use crate::rlp::DecodeResult::List;
 use std::io::{Cursor, Read};
 use std::ops::DerefMut;
 
@@ -63,28 +65,35 @@ impl RLP {
     }
 }
 
-pub fn decode(mut cursor: &mut Cursor<&[u8]>) -> Result<Vec<u8>, &'static str> {
+#[derive(Debug, PartialOrd, PartialEq)]
+enum DecodeResult {
+    Single(Vec<u8>),
+    Multi(Vec<Vec<u8>>),
+    List(Box<Vec<DecodeResult>>),
+}
+
+pub fn decode(mut cursor: &mut Cursor<&[u8]>) -> Result<DecodeResult, &'static str> {
     // 单字节数据
     let first_byte = read_u8(cursor.deref_mut()).unwrap();
     if first_byte <= 0x7f {
-        return Ok(vec![first_byte]);
+        return Ok(DecodeResult::Single(vec![first_byte]));
     }
     // 如果第一个数据在[0x80, 0xb7]范围内，表示是一个短字符串
     if first_byte <= 0xb7 {
         let length = (first_byte - 0x80) as usize;
         // 检查数据是否包含足够的字节
-        if cursor.remaining_slice().len() < length + 1 {
+        if cursor.remaining_slice().len() < length {
             return Err("Invalid RLP data.");
         }
         let mut buf = vec![0; length];
         cursor.read_exact(&mut buf).expect("read short str.");
-        return Ok(buf);
+        return Ok(DecodeResult::Single(buf));
     }
     // 如果数据的第一个字节的值在 [0xb8, 0xbf] 范围内，表示它是一个长字符串
     if first_byte <= 0xbf {
         let length = (first_byte - 0xb7) as usize;
         // 检查数据是否包含足够的字节
-        if cursor.remaining_slice().len() < length + 1 {
+        if cursor.remaining_slice().len() < length {
             return Err("Invalid RLP data.");
         }
         let mut len_bytes = vec![0; length];
@@ -92,14 +101,44 @@ pub fn decode(mut cursor: &mut Cursor<&[u8]>) -> Result<Vec<u8>, &'static str> {
             .read_exact(&mut len_bytes)
             .expect("read long str length bytes");
         let len = bytes_to_usize(&len_bytes);
-        if cursor.remaining_slice().len() < length + 1 + len {
+        if cursor.remaining_slice().len() < len {
             return Err("Invalid RLP data.");
         }
         let mut data_bytes = vec![0; len];
         cursor
             .read_exact(&mut data_bytes)
             .expect("read long str data");
-        return Ok(data_bytes);
+        return Ok(DecodeResult::Single(data_bytes));
+    }
+    if first_byte <= 0xf7 {
+        let length = (first_byte - 0xc0) as usize;
+        // 检查数据是否包含足够的字节
+        if cursor.remaining_slice().len() < length {
+            return Err("Invalid RLP data.");
+        }
+        let mut bytes = vec![0; length];
+        cursor.read_exact(&mut bytes).expect("read short list");
+        let result = decoder(bytes.as_slice()).unwrap();
+        return Ok(List(Box::new(result)));
+    }
+    if first_byte <= 0xff {
+        let list_length_bytes_len = (first_byte - 0xf7) as usize;
+        // 检查数据是否包含足够的字节
+        if cursor.remaining_slice().len() < list_length_bytes_len {
+            return Err("Invalid RLP data.");
+        }
+        let mut bytes = vec![0; list_length_bytes_len];
+        cursor.read_exact(&mut bytes).expect("read list length.");
+        let data_len = bytes_to_usize(&bytes);
+        if cursor.remaining_slice().len() < data_len {
+            return Err("Invalid RLP data.");
+        }
+        let mut data_bytes = vec![0; data_len];
+        cursor
+            .read_exact(data_bytes.as_mut_slice())
+            .expect("read long list.");
+        let result = decoder(data_bytes.as_slice()).unwrap();
+        return Ok(List(Box::new(result)));
     }
     return Err("Invalid RLP data");
 }
@@ -107,12 +146,13 @@ pub fn decode(mut cursor: &mut Cursor<&[u8]>) -> Result<Vec<u8>, &'static str> {
 pub fn bytes_to_usize(data: &[u8]) -> usize {
     let mut result = 0usize;
     for &byte in data {
-        result = result << 8 + byte as usize;
+        // 为什么这里左移动8位会overflow？因为左移动拓宽了数据的范围，与rust的操作理念不符合
+        result = result * 256 + (byte as usize);
     }
     result
 }
 
-pub fn decoder(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> {
+pub fn decoder(data: &[u8]) -> Result<Vec<DecodeResult>, &'static str> {
     let mut cursor = Cursor::new(data);
     let mut result = vec![];
     while !cursor.is_empty() {
@@ -125,6 +165,7 @@ pub fn decoder(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> {
 mod test_rlp {
     use super::*;
     use crate::hex_string_to_bytes;
+    use crate::rlp::DecodeResult::Single;
 
     #[test]
     fn test_encode_item() {
@@ -151,9 +192,56 @@ mod test_rlp {
         let data = decode(&mut Cursor::new(&rlp_data)).unwrap();
         println!("decode data: {:?}", data);
         // 因为目前还没有考虑递归循环处理，所以只是解码出第一组cat的u8数组
-        assert_eq!(data, vec![99, 97, 116]);
+        assert_eq!(data, Single(vec![99, 97, 116]));
         let result = decoder(&rlp_data).unwrap();
         println!("decoder data: {:?}", result);
-        assert_eq!(result, vec![vec![99, 97, 116], vec![1], vec![2]]);
+        assert_eq!(
+            result,
+            vec![Single(vec![99, 97, 116]), Single(vec![1]), Single(vec![2])]
+        );
+    }
+
+    #[test]
+    fn test_eth_decode() {
+        let mut raw_tx = "0x02f8b1018084951e475b85177a3bb47a8301725e94dac17f958d2ee523a2206206994597c13d831ec780b844a9059cbb0000000000000000000000000b8c245fb6d5afaecc836e11602d41b85cd1eca20000000000000000000000000000000000000000000000000000000040414a9cc001a00942374401459aeb1f0606e90cb2dbbd615b6815cac40ae8c7e311197d251ac6a03ec0270e656e5b7835941b565d7d75c5f1ae6cc505dc900e2244e881fd78ee0d";
+        if raw_tx.starts_with("0x") {
+            raw_tx = &raw_tx[2..];
+        }
+        let bytes = hex_string_to_bytes(raw_tx);
+        let result = decoder(bytes.as_slice()).unwrap();
+        println!("raw tx decode result: {:?}", result);
+        // EIP1559交易编码格式：0x02 || rlp([chain_id, nonce, max_priority_fee_per_gas, max_fee_per_gas, gas_limit, destination, amount, data, access_list, signature_y_parity, signature_r, signature_s])
+        let expected_result = vec![
+            Single(vec![2]),
+            List(Box::new(vec![
+                Single(vec![1]),                     // chain_id
+                Single(vec![]),                      // nonce
+                Single(vec![149, 30, 71, 91]),       // max_priority_fee_per_gas
+                Single(vec![23, 122, 59, 180, 122]), // max_fee_per_gas
+                Single(vec![1, 114, 94]),            // gas_limit
+                Single(vec![
+                    218, 193, 127, 149, 141, 46, 229, 35, 162, 32, 98, 6, 153, 69, 151, 193, 61,
+                    131, 30, 199,
+                ]), // destination
+                Single(vec![]),                      // amount
+                Single(vec![
+                    169, 5, 156, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 140, 36, 95, 182,
+                    213, 175, 174, 204, 131, 110, 17, 96, 45, 65, 184, 92, 209, 236, 162, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64,
+                    65, 74, 156,
+                ]), // call_data
+                List(Box::new(vec![])),              // access_list
+                Single(vec![1]),                     // signature_y_parity
+                Single(vec![
+                    9, 66, 55, 68, 1, 69, 154, 235, 31, 6, 6, 233, 12, 178, 219, 189, 97, 91, 104,
+                    21, 202, 196, 10, 232, 199, 227, 17, 25, 125, 37, 26, 198,
+                ]), // signature_r
+                Single(vec![
+                    62, 192, 39, 14, 101, 110, 91, 120, 53, 148, 27, 86, 93, 125, 117, 197, 241,
+                    174, 108, 197, 5, 220, 144, 14, 34, 68, 232, 129, 253, 120, 238, 13,
+                ]), // signature_s
+            ])),
+        ];
+        assert_eq!(result, expected_result);
     }
 }
