@@ -2147,6 +2147,7 @@ name = "consensus_algorithm"
 version = "0.1.0"
 dependencies = [
  "rand 0.8.5",
+ "rust-crypto",
 ]
 
 [[package]]
