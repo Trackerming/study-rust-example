@@ -1,4 +1,6 @@
 #![feature(let_chains)]
 
-mod pow;
+pub mod pow;
+
+pub mod pos;
 pub mod raft;

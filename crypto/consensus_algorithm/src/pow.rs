@@ -9,22 +9,22 @@ pub struct Block {
     nonce: u64,
 }
 
-impl Block {
-    fn double_hash(data: String) -> String {
-        let mut hasher = Box::new(Sha256::new());
-        hasher.input(data.as_bytes());
-        let mut out = vec![0u8; hasher.output_bytes()];
-        hasher.result(&mut out);
-        let mut hasher = Box::new(Sha256::new());
-        hasher.input(&out);
-        let mut result = vec![0u8; hasher.output_bytes()];
-        hasher.result(&mut result);
-        result
-            .iter()
-            .map(|b| format!("{:02x}", b))
-            .collect::<String>()
-    }
+pub fn double_hash(data: String) -> String {
+    let mut hasher = Box::new(Sha256::new());
+    hasher.input(data.as_bytes());
+    let mut out = vec![0u8; hasher.output_bytes()];
+    hasher.result(&mut out);
+    let mut hasher = Box::new(Sha256::new());
+    hasher.input(&out);
+    let mut result = vec![0u8; hasher.output_bytes()];
+    hasher.result(&mut result);
+    result
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>()
+}
 
+impl Block {
     pub fn new(data: String, prev_hash: String) -> Self {
         Block {
             data,
@@ -36,7 +36,7 @@ impl Block {
     pub fn calculate_hash(&self) -> String {
         // 序列化之后计算hash
         let input = format!("{}{}{}", self.data, self.prev_hash, self.nonce);
-        Block::double_hash(input)
+        double_hash(input)
     }
 
     pub fn mine_block(&mut self, difficulty: u32) -> Block {
