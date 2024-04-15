@@ -4,6 +4,9 @@ use rand::{thread_rng, Rng};
 
 // 如何在大数范围内计算并实现
 // 无穷远点
+// 曲线选择与ECDSA不同，但是椭圆曲线计算的原理类似，这里就采用方便的曲线演示
+// BLS12–381还有第二条曲线
+// 双线性映射
 
 pub struct Bls {
     pub ecc: ECC,
