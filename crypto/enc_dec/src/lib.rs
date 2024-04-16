@@ -7,6 +7,7 @@ use std::io::{Cursor, Read};
 pub mod base58;
 pub mod bech32;
 mod der;
+mod endian_big_little;
 mod rlp;
 mod ssz;
 
