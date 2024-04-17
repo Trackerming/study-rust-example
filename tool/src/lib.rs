@@ -116,6 +116,13 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             passphrase,
             path,
         } => eth::mnemonic_to_key_pair_by_path(mnemonic, passphrase, path),
+        EthSubCommands::Amount {
+            rpc_url,
+            address,
+            gas_price,
+            gas_limit,
+            block_id,
+        } => eth::calculate_balance(rpc_url, address, gas_price, gas_limit, block_id).await,
         EthSubCommands::Transfer {
             private_key,
             rpc_url,

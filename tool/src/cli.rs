@@ -64,6 +64,18 @@ pub enum EthSubCommands {
         #[arg(short = 'l', long)]
         gas_limit: Option<u128>,
     },
+    Amount {
+        #[arg(short = 'r', long, default_value = "rpc host")]
+        rpc_url: String,
+        #[arg(short = 'a', long, default_value = "destination")]
+        address: String,
+        #[arg(short = 'p', long, default_value = "gas_price/GWei")]
+        gas_price: String,
+        #[arg(short = 'l', long, default_value = "destination")]
+        gas_limit: String,
+        #[arg(short = 'b', long)]
+        block_id: Option<u64>,
+    },
 }
 
 #[derive(Subcommand, Debug)]

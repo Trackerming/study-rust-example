@@ -19,6 +19,7 @@ use ethers::{
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use serde_json::json;
 use std::collections::HashMap;
+use std::ops::{Div, Mul, Sub};
 use std::str::FromStr;
 use std::sync::Arc;
 use tracing::info;
@@ -80,6 +81,38 @@ pub async fn create_transaction(
     if is_broadcast {
         let pending_tx = client.provider().send_raw_transaction(tx).await.unwrap();
         info!("txHash: {:?}", pending_tx.tx_hash());
+    }
+    Ok(())
+}
+
+pub async fn calculate_balance(
+    rpc_url: String,
+    address: String,
+    gas_price: String,
+    gas_limit: String,
+    block_id: Option<u64>,
+) -> Result<()> {
+    // 获取地址余额
+    let provider = Provider::try_from(rpc_url.as_str()).unwrap();
+    let block_id = match block_id {
+        Some(id) => Some(BlockId::from(id)),
+        None => None,
+    };
+    let balance = provider
+        .get_balance(address.as_str().parse::<Address>().unwrap(), block_id)
+        .await
+        .expect("query address balance error");
+    let gas_price_on_chain = provider.get_gas_price().await.unwrap();
+    let g_wei: U256 = 1_000_000_000.into();
+    let gas_price = U256::from_str_radix(gas_price.as_str(), 10)
+        .unwrap()
+        .mul(g_wei);
+    let fee = gas_price.mul(U256::from_str_radix(gas_limit.as_str(), 10).unwrap());
+    if balance.gt(&fee) {
+        let transfer_balance = balance.sub(fee);
+        println!("address: {:?}, transfer balance: {:?}(gas_price: {gas_price}, gas_limit: {gas_limit}), chain_gas_price = {:?}GWei", address, transfer_balance, gas_price_on_chain.div(g_wei));
+    } else {
+        println!("address balance: {balance}, fee: {fee}");
     }
     Ok(())
 }
