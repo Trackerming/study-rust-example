@@ -76,6 +76,10 @@ pub enum EthSubCommands {
         #[arg(short = 'b', long)]
         block_id: Option<u64>,
     },
+    Convert {
+        #[arg(short = 'v', long, default_value = "1.03 ETH")]
+        value: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]

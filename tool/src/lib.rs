@@ -123,6 +123,7 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             gas_limit,
             block_id,
         } => eth::calculate_balance(rpc_url, address, gas_price, gas_limit, block_id).await,
+        EthSubCommands::Convert { value } => eth::eth_convert(value),
         EthSubCommands::Transfer {
             private_key,
             rpc_url,

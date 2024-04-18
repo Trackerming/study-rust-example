@@ -16,9 +16,12 @@ use ethers::{
     prelude::*,
     signers::LocalWallet,
 };
+use num_traits::Num;
+use regex::Regex;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use serde_json::json;
 use std::collections::HashMap;
+use std::f64;
 use std::ops::{Div, Mul, Sub};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -113,6 +116,85 @@ pub async fn calculate_balance(
         println!("address: {:?}, transfer balance: {:?}(gas_price: {gas_price}, gas_limit: {gas_limit}), chain_gas_price = {:?}GWei", address, transfer_balance, gas_price_on_chain.div(g_wei));
     } else {
         println!("address balance: {balance}, fee: {fee}");
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
+pub enum Unit {
+    Wei(U256),
+    GWei(f64),
+    Eth(f64),
+}
+
+impl Unit {
+    pub fn get_all(&self) -> Vec<Unit> {
+        let wei: U256 = 1_000_000_000_000_000_000i64.into();
+        let g_wei = U256::from(1_000_000_000);
+        let wei_f64 = wei.as_u64() as f64;
+        let g_wei_f64 = g_wei.as_u64() as f64;
+        let mut result = vec![];
+        match &self {
+            Unit::Eth(val) => {
+                result.push(Unit::Wei(U256::from(wei_f64.mul(*val) as u64)));
+                result.push(Unit::GWei(g_wei_f64.mul(*val)));
+                result.push(Unit::Eth(*val));
+            }
+            Unit::Wei(val) => {
+                result.push(Unit::Wei(*val));
+                // 损失了精度位，这里要优化就得借助第三方库像rust_decimal进行优化
+                result.push(Unit::GWei((val.as_u128() as f64).div(&g_wei_f64)));
+                result.push(Unit::Eth((val.as_u128() as f64).div(&wei_f64)));
+            }
+            Unit::GWei(val) => {
+                result.push(Unit::Wei(U256::from(val.mul(g_wei_f64) as u64)));
+                result.push(Unit::GWei(*val));
+                result.push(Unit::Eth(val.div(g_wei_f64)));
+            }
+        }
+        result
+    }
+}
+
+pub trait EthersUnit {
+    fn parse_uint_str(&self) -> Option<Unit>;
+}
+
+fn split_number_and_uint(input: &str) -> Option<(String, String)> {
+    let reg = r"(\d+(\.\d+)?)\s*(\w+)";
+    let re = Regex::new(reg).unwrap();
+    if let Some(captures) = re.captures(input) {
+        Some((
+            captures.get(1).unwrap().as_str().to_string(),
+            captures.get(3).unwrap().as_str().to_string(),
+        ))
+    } else {
+        None
+    }
+}
+
+impl EthersUnit for String {
+    fn parse_uint_str(&self) -> Option<Unit> {
+        if let Some((amount, unit)) = split_number_and_uint(&self) {
+            let result = match unit.to_lowercase().as_str() {
+                "wei" => Unit::Wei(U256::from_str_radix(&amount, 10).unwrap()),
+                "gwei" => Unit::GWei(f64::from_str_radix(&amount, 10).unwrap()),
+                "eth" => Unit::Eth(f64::from_str_radix(&amount, 10).unwrap()),
+                _ => {
+                    panic!("unit not supported.")
+                }
+            };
+            Some(result)
+        } else {
+            None
+        }
+    }
+}
+
+pub fn eth_convert(amount: String) -> Result<()> {
+    if let Some(amount_unit) = amount.parse_uint_str() {
+        let result = amount_unit.get_all();
+        println!("{amount} equal: {:?}", result);
     }
     Ok(())
 }
@@ -279,5 +361,47 @@ mod test {
             None,
             None,
         ));
+    }
+
+    #[test]
+    fn test_split_number_uint() {
+        let str1 = "1326 ETH".to_string();
+        let str2 = "1000236326 GWei".to_string();
+        let str3 = "100023632602373623 WEI".to_string();
+        let str4 = "1000236326GWei".to_string();
+        let result1 = split_number_and_uint(&str1);
+        println!("result1: {:?}", result1);
+        assert_eq!(result1.unwrap(), ("1326".to_string(), "ETH".to_string()));
+        let result2 = split_number_and_uint(&str2);
+        println!("result2: {:?}", result2);
+        assert_eq!(
+            result2.unwrap(),
+            ("1000236326".to_string(), "GWei".to_string())
+        );
+        let result3 = split_number_and_uint(&str3);
+        println!("result3: {:?}", result3);
+        assert_eq!(
+            result3.unwrap(),
+            ("100023632602373623".to_string(), "WEI".to_string())
+        );
+        let result4 = split_number_and_uint(&str4);
+        println!("result4: {:?}", result4);
+        assert_eq!(
+            result4.unwrap(),
+            ("1000236326".to_string(), "GWei".to_string())
+        );
+    }
+
+    #[ignore]
+    #[test]
+    fn test_unit_convert() {
+        let str1 = "1.326 ETH".to_string();
+        let str2 = "1000236326 GWei".to_string();
+        let str3 = "100023632602373623 WEI".to_string();
+        let str4 = "1000236326GWei".to_string();
+        let _ = eth_convert(str1);
+        let _ = eth_convert(str2);
+        let _ = eth_convert(str3);
+        let _ = eth_convert(str4);
     }
 }

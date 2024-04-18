@@ -7096,6 +7096,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.1.0",
  "hyper-util",
+ "num-traits",
  "rand 0.8.5",
  "regex",
  "rust-crypto",
