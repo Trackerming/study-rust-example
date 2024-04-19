@@ -5937,6 +5937,8 @@ name = "rsa_simple_demo"
 version = "0.2.2"
 dependencies = [
  "crypto_util",
+ "num-bigint",
+ "num-traits",
  "rand 0.8.5",
 ]
 

@@ -8,3 +8,5 @@ edition.workspace = true
 [dependencies]
 rand = "0.8.5"
 crypto_util = {path = "../crypto_util"}
+num-bigint = "0.4.4"
+num-traits = "0.2.18"

@@ -48,3 +48,54 @@ pub fn tate_pairing(p1: &Point, p2: &Point, scalar: usize, mod_value: usize) -> 
     let result = p1.mul(scalar, mod_value);
     (result.x * p2.x + result.y * p2.y) % mod_value
 }
+
+// 求解最大公约数，欧几里德算法计算
+pub fn gcd(mut a: usize, mut b: usize) -> usize {
+    while b > 0 {
+        let rem = a % b;
+        a = b;
+        b = rem;
+    }
+    a
+}
+
+pub fn lcm(a: usize, b: usize) -> usize {
+    a * b / gcd(a, b)
+}
+
+#[cfg(test)]
+mod test_base_compute_mod {
+    use super::*;
+
+    #[test]
+    fn test_gcd() {
+        let a = 10;
+        let b = 30;
+        let gcd_val = gcd(a, b);
+        assert_eq!(gcd_val, 10);
+        let a = 33;
+        let b = 30;
+        let gcd = gcd(a, b);
+        assert_eq!(gcd, 3);
+        let a = 33;
+        let b = 2;
+        let gcd = crate::base_compute::gcd(a, b);
+        assert_eq!(gcd, 1);
+    }
+
+    #[test]
+    fn test_lcm() {
+        let a = 10;
+        let b = 30;
+        let lcm_val = lcm(a, b);
+        assert_eq!(lcm_val, 30);
+        let a = 33;
+        let b = 30;
+        let lcm_val = lcm(a, b);
+        assert_eq!(lcm_val, 330);
+        let a = 33;
+        let b = 2;
+        let lcm_val = lcm(a, b);
+        assert_eq!(lcm_val, 66);
+    }
+}
