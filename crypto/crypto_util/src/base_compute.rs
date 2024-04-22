@@ -33,15 +33,16 @@ pub fn mod_inverse(a: usize, m: usize) -> usize {
         // (mn.0 / mn.1) * xy.1 计算了(m/a)*y的值
         // xy.0 - (mn.0 / mn.1) * xy.1 计算了 x-(m/a)*y的值
         // 最后将计算结果更新到xy元组中
-        xy = (xy.1, xy.0 - (mn.0 / mn.1) * xy.1);
+        xy = (xy.1, (xy.0 + m - ((mn.0 / mn.1) * xy.1) % m) % m);
+        // xy = (xy.1, xy.0  - ((mn.0 / mn.1) * xy.1));
         // 这一行更新了 mn 的值，将 a 更新为 m，将 m 更新为 a 除以 m 的余数
         mn = (mn.1, mn.0 % mn.1);
     }
     // 如果得到的计算结果为负数，取模运算调整为正数
-    while xy.0 < 0 {
-        xy.0 += m;
-    }
-    xy.0
+    /*    while xy.0 < 0 {
+        xy.0 += m as isize;
+    }*/
+    xy.0 as usize
 }
 
 pub fn tate_pairing(p1: &Point, p2: &Point, scalar: usize, mod_value: usize) -> usize {
@@ -66,6 +67,15 @@ pub fn lcm(a: usize, b: usize) -> usize {
 #[cfg(test)]
 mod test_base_compute_mod {
     use super::*;
+
+    #[test]
+    fn test_mod_inverse() {
+        let a = 17;
+        let m = 19;
+        let mod_inv = mod_inverse(a, m);
+        println!("{mod_inv}");
+        assert_eq!(mod_inv, 9);
+    }
 
     #[test]
     fn test_gcd() {
