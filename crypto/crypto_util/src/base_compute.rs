@@ -42,7 +42,7 @@ pub fn mod_inverse(a: usize, m: usize) -> usize {
     /*    while xy.0 < 0 {
         xy.0 += m as isize;
     }*/
-    xy.0 as usize
+    xy.0
 }
 
 pub fn tate_pairing(p1: &Point, p2: &Point, scalar: usize, mod_value: usize) -> usize {
