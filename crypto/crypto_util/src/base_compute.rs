@@ -45,6 +45,20 @@ pub fn mod_inverse(a: usize, m: usize) -> usize {
     xy.0
 }
 
+pub fn chinese_remainder_theorem(residues: &[usize], modules: &[usize]) -> usize {
+    assert_eq!(residues.len(), modules.len());
+    // 计算模数组中所有的元素的积
+    let modules_product: usize = modules.iter().product();
+    let mut result: usize = 0;
+    for (index, residue) in residues.iter().enumerate() {
+        // 计算M_i
+        let temp_m = modules_product / modules[index];
+        let temp = residue * temp_m * mod_inverse(temp_m, modules[index]);
+        result = (result + temp) % modules_product
+    }
+    result
+}
+
 pub fn tate_pairing(p1: &Point, p2: &Point, scalar: usize, mod_value: usize) -> usize {
     let result = p1.mul(scalar, mod_value);
     (result.x * p2.x + result.y * p2.y) % mod_value
@@ -107,5 +121,13 @@ mod test_base_compute_mod {
         let b = 2;
         let lcm_val = lcm(a, b);
         assert_eq!(lcm_val, 66);
+    }
+
+    #[test]
+    fn test_crt() {
+        let residues = [2, 3, 1];
+        let modules = [3, 4, 5];
+        let crt = chinese_remainder_theorem(&residues, &modules);
+        assert_eq!(crt, 11);
     }
 }
