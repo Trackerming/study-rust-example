@@ -1,4 +1,4 @@
-use crate::mod_opposite;
+use crate::rsa::mod_opposite;
 use crypto_util::base_compute::{gcd, lcm, mod_inverse};
 use num_bigint::{BigUint, ToBigUint};
 use num_traits::ToPrimitive;
@@ -63,6 +63,7 @@ impl PaillierCryptoSys {
         // 这里实际情况要考虑大数的计算和优化，这里仅仅做原理上的演示
         let l_x = Self::mod_pow(g, self.g_lambda, n_2);
         let l = (l_x - 1) / self.n;
+        // TODO: 替换为mod_inverse之后加解密的UT有一定的概率失败
         let g_mu = mod_opposite(l, self.n);
         println!(
             "g = {g}, l_x = {l_x}, l = {l}, g_mu = {g_mu}, n = {}",
