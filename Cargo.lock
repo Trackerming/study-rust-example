@@ -4679,6 +4679,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mpc"
+version = "0.2.2"
+dependencies = [
+ "crypto_util",
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "naga"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
