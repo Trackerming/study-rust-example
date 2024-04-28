@@ -13,6 +13,7 @@ members = [
     "./crypto/ecc_simple_demo",
     "./crypto/enc_dec",
     "./crypto/jwt_demo",
+    "./crypto/mpc",
     "./crypto/rsa_simple_demo",
     "./crypto/utxo_wallet",
     "./crypto/zero_knowledge",
