@@ -116,6 +116,11 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             passphrase,
             path,
         } => eth::mnemonic_to_key_pair_by_path(mnemonic, passphrase, path),
+        EthSubCommands::ContractCallParse {
+            data,
+            abi,
+            func_name,
+        } => eth::decode_call_data(data, abi, func_name),
         EthSubCommands::Amount {
             rpc_url,
             address,
