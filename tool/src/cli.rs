@@ -80,6 +80,18 @@ pub enum EthSubCommands {
         #[arg(short = 'v', long, default_value = "1.03 ETH")]
         value: String,
     },
+    ContractCallParse {
+        #[arg(
+            short = 'd',
+            long,
+            default_value = "0xa9059cbb0000000000000000000000000ca0e077a7d81c8ba0aeb710d2cfe2aa5dd3d9550000000000000000000000000000000000000000000000000000000218711a00"
+        )]
+        data: String,
+        #[arg(short = 'a', long)]
+        abi: Option<String>,
+        #[arg(short = 'n', long)]
+        func_name: Option<String>,
+    },
 }
 
 #[derive(Subcommand, Debug)]
