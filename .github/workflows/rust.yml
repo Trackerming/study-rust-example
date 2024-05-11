@@ -13,7 +13,7 @@ jobs:
   build:
     name: Build
 
-    runs-on: macos-latest
+    runs-on: macos-11.4 # 先与开发机器系统保持一致
 
     steps:
     # 详见 https://github.com/marketplace/actions/rust-toolchain#example-workflow
