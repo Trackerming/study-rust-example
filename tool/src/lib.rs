@@ -4,6 +4,7 @@ use crate::cli::{
     SubCommands::{Btc, Decrypt, Encrypt, Eth, Log2Csv, Random, Reverse},
 };
 use anyhow::Result;
+use ethers::providers::spoof::nonce;
 use rand::{thread_rng, Rng};
 use tracing::{debug, error, info, warn};
 
@@ -139,6 +140,7 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
             contract_address,
             gas_price,
             gas_limit,
+            nonce,
         } => {
             eth::create_transaction(
                 private_key,
@@ -150,6 +152,7 @@ pub async fn handle_eth_sub_command(eth_sub_commands: EthSubCommands) -> Result<
                 contract_address,
                 gas_price,
                 gas_limit,
+                nonce,
             )
             .await
         }

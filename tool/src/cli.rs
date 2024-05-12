@@ -63,6 +63,8 @@ pub enum EthSubCommands {
         gas_price: Option<u128>,
         #[arg(short = 'l', long)]
         gas_limit: Option<u128>,
+        #[arg(short = 'n', long)]
+        nonce: Option<u128>,
     },
     Amount {
         #[arg(short = 'r', long, default_value = "rpc host")]

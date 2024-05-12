@@ -41,6 +41,7 @@ pub async fn create_transaction(
     contract: Option<String>,
     gas_price: Option<u128>,
     gas_limit: Option<u128>,
+    nonce: Option<u128>,
 ) -> Result<()> {
     let wallet = private_key.as_str().parse::<LocalWallet>().unwrap();
     let provider = Provider::<Http>::try_from(rpc_url.as_str()).unwrap();
@@ -77,6 +78,9 @@ pub async fn create_transaction(
     }
     if let Some(gas_limit_val) = gas_limit {
         tx_request.set_gas(gas_limit_val);
+    }
+    if let Some(nonce) = nonce {
+        tx_request.set_nonce(nonce);
     }
     client
         .fill_transaction(&mut tx_request, None)
@@ -408,6 +412,7 @@ mod test {
             None,
             None,
             None,
+            None,
         ));
     }
 
@@ -423,6 +428,7 @@ mod test {
             0x05,
             false,
             Some("0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc".to_string()),
+            None,
             None,
             None,
         ));
