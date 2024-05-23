@@ -54,7 +54,7 @@ pub enum EthSubCommands {
         #[arg(short = 'v', long)]
         value: u128,
         #[arg(short = 'i', long)]
-        chain_id: u8,
+        chain_id: u32,
         #[arg(short = 'b', long)]
         is_broadcast: bool,
         #[arg(short = 'c', long)]

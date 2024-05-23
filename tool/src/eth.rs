@@ -36,7 +36,7 @@ pub async fn create_transaction(
     rpc_url: String,
     to: String,
     value: u128,
-    chain_id: u8,
+    chain_id: u32,
     is_broadcast: bool,
     contract: Option<String>,
     gas_price: Option<u128>,
