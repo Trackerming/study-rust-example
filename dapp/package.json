@@ -1,0 +1,14 @@
+{
+  "name": "dapp",
+  "version": "1.0.0",
+  "description": "dapp learning ts",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "solc": "^0.8.26",
+    "web3": "^4.10.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.14.5"
+  }
+}
