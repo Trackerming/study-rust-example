@@ -4,6 +4,7 @@
   "description": "dapp learning ts",
   "dependencies": {
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.1",
     "solc": "^0.8.26",
     "web3": "^4.10.0"
   },
