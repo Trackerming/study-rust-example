@@ -7,7 +7,7 @@ const solc = require('solc');
 // init env
 const rpc = "wss://ethereum-sepolia-rpc.publicnode.com";
 
-function getPrivateKey(): string {
+export function getPrivateKey(): string {
     dotnev.config();
     let privateKey = process.env.priv_key;
     if (privateKey && privateKey.slice(0, 2) !== '0x')
