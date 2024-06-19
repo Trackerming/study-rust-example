@@ -1,0 +1,9 @@
+[package]
+name = "jwt_demo"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+jsonwebtoken = "9.2.0"
+serde_json = "1.0.113"
+serde = { version = "1.0.196", features = ["derive"] }

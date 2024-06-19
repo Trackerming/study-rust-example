@@ -8,3 +8,11 @@ edition.workspace = true
 [dependencies]
 rand = "0.8.5"
 crypto_util = {path = "../crypto_util"}
+enc_dec = {path = "../enc_dec"}
+rust-crypto = "0.2.36"
+secp256k1 = { version = "0.27.0", default-features = false, features = [
+    "global-context",
+    "rand-std",
+    "recovery",
+] }
+serde = { version = "1.0.197", features = ["derive"] }

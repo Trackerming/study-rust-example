@@ -1,3 +1,4 @@
+use clap::builder::Str;
 use clap::{Args, Parser, Subcommand};
 use ethers::types::U128;
 
@@ -14,12 +15,12 @@ pub enum EthSubCommands {
     },
 
     ChainInfo {
-        #[arg(short = 's', long, default_value = "host")]
-        host: String,
+        #[arg(short = 's', long, default_value = "address")]
+        address: String,
         #[arg(short = 'k', long, default_value = "api_key")]
         api_key: String,
-        #[arg(short = 'a', long, default_value = "address")]
-        address: String,
+        #[arg(short = 'i', long)]
+        chain_id: u64,
     },
     Bip32 {
         #[arg(short = 's', long, default_value = "x_private_key")]
@@ -53,7 +54,7 @@ pub enum EthSubCommands {
         #[arg(short = 'v', long)]
         value: u128,
         #[arg(short = 'i', long)]
-        chain_id: u8,
+        chain_id: u32,
         #[arg(short = 'b', long)]
         is_broadcast: bool,
         #[arg(short = 'c', long)]
@@ -62,6 +63,36 @@ pub enum EthSubCommands {
         gas_price: Option<u128>,
         #[arg(short = 'l', long)]
         gas_limit: Option<u128>,
+        #[arg(short = 'n', long)]
+        nonce: Option<u128>,
+    },
+    Amount {
+        #[arg(short = 'r', long, default_value = "rpc host")]
+        rpc_url: String,
+        #[arg(short = 'a', long, default_value = "destination")]
+        address: String,
+        #[arg(short = 'p', long, default_value = "gas_price/GWei")]
+        gas_price: String,
+        #[arg(short = 'l', long, default_value = "destination")]
+        gas_limit: String,
+        #[arg(short = 'b', long)]
+        block_id: Option<u64>,
+    },
+    Convert {
+        #[arg(short = 'v', long, default_value = "1.03 ETH")]
+        value: String,
+    },
+    ContractCallParse {
+        #[arg(
+            short = 'd',
+            long,
+            default_value = "0xa9059cbb0000000000000000000000000ca0e077a7d81c8ba0aeb710d2cfe2aa5dd3d9550000000000000000000000000000000000000000000000000000000218711a00"
+        )]
+        data: String,
+        #[arg(short = 'a', long)]
+        abi: Option<String>,
+        #[arg(short = 'n', long)]
+        func_name: Option<String>,
     },
 }
 
@@ -136,6 +167,20 @@ pub(crate) enum SubCommands {
         text: String,
         #[arg(short = 'c', long, default_value = "code")]
         code: String,
+    },
+    Log2Csv {
+        #[arg(short = 'i', long, default_value = "input.out")]
+        input_file: String,
+        #[arg(short = 'o', long, default_value = "output.csv")]
+        output_file: String,
+        #[arg(
+            short = 'r',
+            long,
+            default_value = "address: (.*?), BNB = (.*?), contractBalance :  BSC-USD,(.*?),BSC-ETH,(.*)"
+        )]
+        reg: String,
+        #[arg(short = 'k', long, default_value = "BSC")]
+        key_word: String,
     },
     #[command(subcommand)]
     Eth(EthSubCommands),

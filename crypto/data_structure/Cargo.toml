@@ -1,0 +1,8 @@
+[package]
+name = "data_structure"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rust-crypto = "0.2.36"
+enc_dec = { path = "../enc_dec" }

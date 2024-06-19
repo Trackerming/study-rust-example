@@ -1,10 +1,11 @@
+use anyhow::Result;
 use clap::Parser;
 use tool_lib::{cli::Cli, start};
 use tracing::{info, metadata::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::builder()
@@ -15,5 +16,7 @@ async fn main() {
         .init();
     let args = Cli::parse();
     info!("crypto cli start...");
-    let _ = start(args).await;
+    let result = start(args).await?;
+    info!("crypto cli finished {:?}", result);
+    Ok(())
 }
