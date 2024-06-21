@@ -7,3 +7,4 @@ pub mod repeat_of_array;
 pub mod tree_iterator;
 
 pub mod fibonacci_list;
+pub mod two_sum;
