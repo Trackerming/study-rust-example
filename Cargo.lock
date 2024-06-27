@@ -2520,7 +2520,7 @@ name = "data_structure"
 version = "0.2.2"
 dependencies = [
  "enc_dec",
- "rust-crypto",
+ "sha2",
 ]
 
 [[package]]
@@ -2721,10 +2721,11 @@ dependencies = [
 name = "enc_dec"
 version = "0.2.2"
 dependencies = [
+ "bitcoin_hashes 0.14.0",
  "num-bigint",
  "num-integer",
  "num-traits",
- "rust-crypto",
+ "sha2",
 ]
 
 [[package]]

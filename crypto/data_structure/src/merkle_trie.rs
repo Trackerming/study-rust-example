@@ -1,4 +1,4 @@
-use crypto::{digest::Digest, sha2::Sha256};
+use sha2::{Sha256, Digest};
 
 #[derive(Debug, PartialEq)]
 pub struct MerkleTrieNode {
@@ -17,16 +17,14 @@ impl MerkleTrieNode {
     }
 
     pub fn compute_hash(left_hash: &[u8], right_hash: &[u8], is_btc: bool) -> Vec<u8> {
-        let mut sha256 = Box::new(Sha256::new());
-        sha256.input(left_hash);
-        sha256.input(right_hash);
-        let mut out = vec![0u8; sha256.output_bytes()];
-        sha256.result(&mut out);
+        let mut sha256 = Sha256::new();
+        sha256.update(left_hash);
+        sha256.update(right_hash);
+        let out = sha256.finalize().to_vec();
         if is_btc {
-            let mut sha256 = Box::new(Sha256::new());
-            sha256.input(&out);
-            let mut result = vec![0u8; sha256.output_bytes()];
-            sha256.result(&mut result);
+            let mut sha256 = Sha256::new();
+            sha256.update(&out);
+            let result = sha256.finalize().to_vec();
             result
         } else {
             out

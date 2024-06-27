@@ -4,5 +4,5 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-rust-crypto = "0.2.36"
+sha2 = "0.10.8"
 enc_dec = { path = "../enc_dec" }

@@ -1,8 +1,8 @@
 use crate::hex_string_to_bytes;
-use crypto::digest::Digest;
-use crypto::{ripemd160, sha2::Sha256};
+use sha2::{Digest, Sha256};
 use num_integer::Integer;
 use num_traits::cast::ToPrimitive;
+
 // 编码原理：
 // 准备数据：将要编码的二进制数据准备好。
 //
@@ -65,14 +65,12 @@ pub fn decode(data: String) -> Vec<u8> {
 }
 
 fn sha256_double(input: &[u8]) -> Vec<u8> {
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&input[..]);
-    let mut out = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut out);
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&out);
-    let mut result = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut result);
+    let mut sha256 = Sha256::new();
+    sha256.update(&input[..]);
+    let out = sha256.finalize().to_vec();
+    let mut sha256 = Sha256::new();
+    sha256.update(&out);
+    let result = sha256.finalize().to_vec();
     result
 }
 
