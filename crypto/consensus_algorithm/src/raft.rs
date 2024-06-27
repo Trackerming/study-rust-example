@@ -222,12 +222,15 @@ impl<'a> RaftNode<'a> {
     }
 
     fn handle_msg(&mut self, msg: Arc<Message>, channel_node_id: u64) -> Option<RaftMessageBody> {
-        if let Some(leader_id) = self.system.leader
-            && leader_id == channel_node_id
-        {
-            self.handle_leader_msg(msg)
-        } else {
-            match *msg.body.deref() {
+        match self.system.leader {
+            Some(leader_id) => {
+                if leader_id == channel_node_id {
+                    self.handle_leader_msg(msg)
+                } else {
+                    None
+                }
+            }
+            None => match *msg.body.deref() {
                 RaftMessageBody::RequestVoteMsg(term) => {
                     println!("RequestVoteMsg for term: {term}");
                     Some(RaftMessageBody::RequestVoteResponseMsg(
@@ -293,7 +296,7 @@ impl<'a> RaftNode<'a> {
                     );
                     None
                 }
-            }
+            },
         }
     }
 

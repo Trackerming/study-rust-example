@@ -1,6 +1,6 @@
-use crypto::digest::Digest;
-use crypto::sha2::Sha256;
+use sha2::{Digest, Sha256};
 use std::hash::Hash;
+// use sha2::digest::{DynDigest, Update};
 
 #[derive(Debug, PartialEq)]
 pub struct Block {
@@ -10,14 +10,12 @@ pub struct Block {
 }
 
 pub fn double_hash(data: String) -> String {
-    let mut hasher = Box::new(Sha256::new());
-    hasher.input(data.as_bytes());
-    let mut out = vec![0u8; hasher.output_bytes()];
-    hasher.result(&mut out);
-    let mut hasher = Box::new(Sha256::new());
-    hasher.input(&out);
-    let mut result = vec![0u8; hasher.output_bytes()];
-    hasher.result(&mut result);
+    let mut hasher = Sha256::new();
+    hasher.update(data.as_bytes());
+    let out = hasher.finalize().to_vec();
+    let mut hasher = Sha256::new();
+    hasher.update(&out);
+    let result = hasher.finalize().to_vec();
     result
         .iter()
         .map(|b| format!("{:02x}", b))
