@@ -1,11 +1,10 @@
-use crypto::aead::{AeadDecryptor, AeadEncryptor};
-use crypto::{
-    aes::KeySize::KeySize256,
-    aes_gcm::AesGcm,
-    digest::Digest,
-    sha3::{Sha3, Sha3Mode},
+use aes_gcm::aead::{AeadMut, Buffer};
+use aes_gcm::{
+    aead::{Aead, AeadCore, OsRng},
+    Aes256Gcm, AesGcm, Key, KeyInit, Nonce,
 };
 use rand::prelude::*;
+use sha3::{Digest, Keccak256};
 use std::iter::repeat;
 use std::{fmt::Write, string::String};
 use tracing::info;
@@ -18,10 +17,9 @@ use crate::util::{hex_string_2_array, u8_array_convert_string};
 ///
 
 fn generate_key(password: String) -> Vec<u8> {
-    let mut sh = Box::new(Sha3::new(Sha3Mode::Keccak256));
-    sh.input(&password.as_bytes());
-    let mut out = vec![0u8; sh.output_bytes()];
-    sh.result(&mut out);
+    let mut sh = Keccak256::new();
+    sh.update(&password.as_bytes());
+    let out = sh.finalize().to_vec();
     out
 }
 
@@ -29,20 +27,26 @@ pub fn encrypt(plaintext: String, password: String) -> anyhow::Result<()> {
     info!("plaintext: {plaintext}");
     let key = generate_key(password);
     let mut rng = rand::thread_rng();
-    let mut iv = [0u8; 12];
-    rng.fill_bytes(&mut iv);
     let mut aad = [0u8; 16];
     rng.fill_bytes(&mut aad);
-    let mut aes_gcm = AesGcm::new(KeySize256, &key[..], &iv, &aad);
+    let aes_key = Key::<Aes256Gcm>::from_slice(key.as_slice());
+    let mut aes_gcm = Aes256Gcm::new(&aes_key);
     let plaintext_array = plaintext.as_bytes();
-    let mut out: Vec<u8> = repeat(0)
-        .take((plaintext_array.len() as u64).try_into().unwrap())
-        .collect();
-    let mut out_tag: Vec<u8> = repeat(0).take(16).collect();
-    aes_gcm.encrypt(&plaintext_array, &mut out[..], &mut out_tag);
-    let out_str: String = u8_array_convert_string(&out);
-    let iv_str = u8_array_convert_string(&iv);
-    let tag_str = u8_array_convert_string(&out_tag);
+    let nonce = Aes256Gcm::generate_nonce(OsRng);
+    let mut out = aes_gcm
+        .encrypt(
+            &nonce,
+            aes_gcm::aead::Payload {
+                msg: plaintext_array,
+                aad: aad.as_slice(),
+            },
+        )
+        .unwrap();
+    println!("out: {:?}", out);
+    let index = out.len() - 16;
+    let out_str: String = u8_array_convert_string(&out[..index]);
+    let iv_str = u8_array_convert_string(&nonce.as_slice());
+    let tag_str = u8_array_convert_string(&out[index..]);
     let aad_str = u8_array_convert_string(&aad);
     info!(
         "cipher: {:?}\n{:?}, \niv: {:?}\n tag:{:?}, aav: {:?}",
@@ -60,17 +64,27 @@ pub fn decrypt(
 ) -> anyhow::Result<()> {
     info!("cipher: {cipher}");
     let key = generate_key(password);
-    let cipher_arr = hex_string_2_array(&cipher);
-    let iv = hex_string_2_array(&iv);
+    let mut cipher_arr = hex_string_2_array(&cipher);
+    let mut nonce_arr = hex_string_2_array(&iv);
     let tag = hex_string_2_array(&tag);
     let aad = hex_string_2_array(&aad);
-    let mut aes_gcm = AesGcm::new(KeySize256, &key[..], &iv, &aad);
-    let mut out: Vec<u8> = repeat(0).take(cipher_arr.len()).collect();
-    let result = aes_gcm.decrypt(&cipher_arr, &mut out, &tag);
-    let plaintext = String::from_utf8(out.clone()).unwrap();
+    let aes_key = Key::<Aes256Gcm>::from_slice(key.as_slice());
+    let mut aes_gcm = Aes256Gcm::new(&aes_key);
+    cipher_arr.extend_from_slice(&tag);
+    let result = aes_gcm
+        .decrypt(
+            &Nonce::from_slice(nonce_arr.as_slice()),
+            aes_gcm::aead::Payload {
+                msg: cipher_arr.as_slice(),
+                aad: &aad,
+            },
+        )
+        .unwrap();
+    //let result = aes_gcm.decrypt(&cipher_arr, &mut out, &tag);
+    let plaintext = String::from_utf8(result.clone()).unwrap();
     println!(
-        "decrypt success: {:?}, result: {:?}, plaintext: {:?}",
-        result, out, plaintext
+        "decrypt success, result: {:?}, plaintext: {:?}",
+        result, plaintext
     );
     Ok(())
 }

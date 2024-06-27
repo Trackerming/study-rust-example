@@ -2,10 +2,10 @@ use crate::bip32::{derive_private_by_path, derive_public_by_path, mnemonic_to_x_
 use crate::eth::get_public_key;
 use anyhow::Result;
 use bip32::{Prefix, PublicKey as Bip32PubKey};
+use bitcoin_hashes::{ripemd160, Hash};
 use bs58::{decode, encode};
-use crypto::digest::Digest;
-use crypto::{ripemd160, sha2::Sha256};
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 use std::str::FromStr;
 use tracing::info;
 
@@ -21,20 +21,18 @@ const OP_CHECKSIG: u8 = 0xac;
 // 先实现最基础的P2PKH和P2WPKH，其他的多签和script的类型暂不考虑，后续考虑优化，这里也不过多依赖第三方库
 fn pub_key_to_address(public_key: PublicKey) -> String {
     // sha256
-    let mut sha256 = Box::new(Sha256::new());
+    let mut sha256 = Sha256::new();
     // 压缩型的地址
-    sha256.input(&public_key.serialize()[..]);
-    let mut out_1 = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut out_1);
+    sha256.update(&public_key.serialize()[..]);
+    let out_1 = sha256.finalize().to_vec();
     // ripemd160
-    let mut hash = Box::new(ripemd160::Ripemd160::new());
-    hash.input(&out_1);
-    let mut out = vec![0u8; hash.output_bytes()];
-    hash.result(&mut out);
+    let mut hash = ripemd160::Hash::hash(&out_1);
+    let out_bytes: &[u8] = hash.as_ref();
+    let mut out: Vec<u8> = out_bytes.to_vec();
     // P2PKH
     let p2pkh = [
-        &[OP_DUP, OP_HASH160, out.len() as u8][..],
-        &out[..],
+        &[OP_DUP, OP_HASH160, 20][..],
+        &out,
         &[OP_EQUALVERIFY, OP_CHECKSIG],
     ]
     .concat();
@@ -84,14 +82,12 @@ pub fn get_tx_hash(raw_tx: String) -> Result<()> {
 }
 
 fn double_sha256(input: &[u8]) -> Vec<u8> {
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&input[..]);
-    let mut out = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut out);
-    let mut sha256 = Box::new(Sha256::new());
-    sha256.input(&out);
-    let mut result = vec![0u8; sha256.output_bytes()];
-    sha256.result(&mut result);
+    let mut sha256 = Sha256::new();
+    sha256.update(&input[..]);
+    let out = sha256.finalize().to_vec();
+    let mut sha256 = Sha256::new();
+    sha256.update(&out);
+    let result = sha256.finalize().to_vec();
     result
 }
 

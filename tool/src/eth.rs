@@ -6,8 +6,6 @@ use bip32::secp256k1::elliptic_curve::weierstrass::add;
 use bip32::{Prefix, PublicKey as Bip32PubKey};
 use bytes::Buf;
 use clap::builder::Str;
-use crypto::digest::Digest;
-use crypto::sha3::Sha3;
 use ethers::abi::{parse_abi_str, AbiEncode};
 use ethers::types::transaction::eip2718::TypedTransaction;
 use ethers::utils::hex::ToHex;
@@ -23,6 +21,7 @@ use num_traits::Num;
 use regex::Regex;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use serde_json::json;
+use sha3::Digest;
 use std::collections::HashMap;
 use std::f64;
 use std::io::{Cursor, Read};
@@ -275,10 +274,9 @@ pub fn get_public_key(private_key: &str) -> PublicKey {
 }
 
 fn pub_key_to_address(public_key: PublicKey) -> String {
-    let mut hash = Box::new(Sha3::keccak256());
-    hash.input(&public_key.serialize_uncompressed()[1..]);
-    let mut out = vec![0u8; hash.output_bytes()];
-    hash.result(&mut out);
+    let mut hasher = sha3::Keccak256::new();
+    hasher.update(&public_key.serialize_uncompressed()[1..]);
+    let out = hasher.finalize().to_vec();
     // 取后20个bytes作为地址
     let addr = u8_array_convert_string(&out[12..]);
     let mut address = "0x".to_string();
