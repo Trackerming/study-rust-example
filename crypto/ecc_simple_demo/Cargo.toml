@@ -9,7 +9,8 @@ edition.workspace = true
 rand = "0.8.5"
 crypto_util = {path = "../crypto_util"}
 enc_dec = {path = "../enc_dec"}
-rust-crypto = "0.2.36"
+hmac = "0.12.1"
+sha2 = "0.10.8"
 secp256k1 = { version = "0.27.0", default-features = false, features = [
     "global-context",
     "rand-std",

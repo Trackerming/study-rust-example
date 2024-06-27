@@ -1,8 +1,7 @@
-use crypto::hmac::Hmac;
-use crypto::mac::Mac;
-use crypto::sha2::Sha512;
 use enc_dec::base58::decode;
+use hmac::{Hmac, Mac};
 use secp256k1::{PublicKey, SecretKey};
+use sha2::Sha512;
 use std::fmt::{Display, Error};
 
 // https://www.btcstudy.org/2023/10/09/bip-32-extended-keys-diagram/
@@ -24,11 +23,10 @@ const VERSION_BYTES_MAINNET_PUBLIC: [u8; 4] = [0x04, 0x88, 0xB2, 0x1E];
 const VERSION_BYTES_MAINNET_PRIVATE: [u8; 4] = [0x04, 0x88, 0xAD, 0xE4];
 
 fn hmac_sha512(key: &[u8], data: &[u8]) -> Vec<u8> {
-    let mut hmac = Hmac::new(Sha512::new(), key);
-    hmac.input(data);
-    let result = hmac.result();
-    let code_bytes = result.code();
-    code_bytes.to_vec()
+    let mut hmac = Hmac::<Sha512>::new_from_slice(key).unwrap();
+    hmac.update(data);
+    let result = hmac.finalize().into_bytes();
+    result.to_vec()
 }
 
 #[derive(Debug)]
