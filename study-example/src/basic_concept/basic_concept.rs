@@ -7,7 +7,7 @@ pub mod variable {
         /*
         取消下行注释编译出错
         error[E0384]: cannot assign twice to immutable variable `immutable_var`
-            --> src/basic_concept/basic_concept.rs:7:9
+            --> bin/basic_concept/basic_concept.rs:7:9
            |
          6 |         let immutable_var = 100;
            |             -------------
@@ -32,7 +32,7 @@ pub mod variable {
         /*
         若放开下面的注释将报错
         error: const globals cannot be mutable
-           --> src/basic_concept/basic_concept.rs:33:15
+           --> bin/basic_concept/basic_concept.rs:33:15
            |
         33 |         const mut G_WEI:u32 = 1000000000;
            |         ----- ^^^ cannot be mutable
@@ -63,7 +63,7 @@ pub mod variable {
         /*
         若打开下一行注释
         error[E0308]: mismatched types
-            --> src/basic_concept/basic_concept.rs:62:14
+            --> bin/basic_concept/basic_concept.rs:62:14
               |
            59 |         let mut x :u16  = 10000;
               |                    --- expected due to this type
@@ -90,7 +90,7 @@ pub mod data_types {
         /*
         如果不明确指定类型将编译告错如下
         error[E0282]: type annotations needed
-          --> src/basic_concept/basic_concept.rs:90:13
+          --> bin/basic_concept/basic_concept.rs:90:13
            |
         90 |         let var= "32".parse().expect("string not a number.");
            |             ^^^
@@ -159,7 +159,7 @@ pub mod data_types {
         let mut index = 0;
         // 访问数组越界时候：
         /*
-        thread 'main' panicked at 'index out of bounds: the len is 10 but the index is 10', src/basic_concept/basic_concept.rs:161:23
+        thread 'main' panicked at 'index out of bounds: the len is 10 but the index is 10', bin/basic_concept/basic_concept.rs:161:23
         note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
         */
         while index <= a2.len() {
@@ -216,7 +216,7 @@ pub mod control_flow {
         }
         let flag = 3;
         /*error[E0308]: mismatched types
-          --> src/basic_concept/basic_concept.rs:218:12
+          --> bin/basic_concept/basic_concept.rs:218:12
            |
           218 |         if flag {
            |            ^^^^ expected `bool`, found integer

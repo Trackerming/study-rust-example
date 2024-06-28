@@ -11,7 +11,7 @@ fn outside_scope() {
 
 /*
 error[E0106]: missing lifetime specifier
-  --> src/generic_traits_lifetime/lifetime_study.rs:12:38
+  --> bin/generic_traits_lifetime/lifetime_study.rs:12:38
    |
 12 | fn longer(str1: &str, str2: &str) -> &str {
    |                 ----        ----     ^ expected named lifetime parameter

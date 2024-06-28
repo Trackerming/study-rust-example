@@ -57,7 +57,7 @@ impl Messager for MockMessager {
         self.sent_message.borrow_mut().push(String::from(msg));
         self.sent_message.borrow_mut().push(String::from(msg));
         let mut borrow1 = self.sent_message.borrow_mut();
-        // 运行时错误： thread 'main' panicked at 'already borrowed: BorrowMutError', study-example/src/smart_pointer/refcell_pointer.rs:57:45
+        // 运行时错误： thread 'main' panicked at 'already borrowed: BorrowMutError', study-example/bin/smart_pointer/refcell_pointer.rs:57:45
         // let mut borrow2 = self.sent_message.borrow_mut();
         borrow1.push(String::from(msg));
         // borrow2.push(String::from(msg));

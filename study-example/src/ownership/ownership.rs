@@ -8,7 +8,7 @@ pub mod ownership_test {
         // 离开了上面的scope，s已经失效
         /*
         error[E0425]: cannot find value `s` in this scope
-           --> src/ownership/ownership.rs:9:22
+           --> bin/ownership/ownership.rs:9:22
            |
          9 |         println!("s {s}");
            |                      ^ not found in this scope*/
@@ -37,7 +37,7 @@ pub mod ownership_test {
         println!("s2 {} s3 {}", s2, s3);
         /*
          error[E0382]: borrow of moved value: `s1`
-          --> src/ownership/ownership.rs:35:23
+          --> bin/ownership/ownership.rs:35:23
            |
         33 |         let mut s1 = String::from("hello");
            |             ------ move occurs because `s1` has type `String`, which does not implement the `Copy` trait
@@ -113,7 +113,7 @@ pub mod reference_borrow {
     // 如果引用的数据要更新如何处理
     /*
      error[E0596]: cannot borrow `*str_ref` as mutable, as it is behind a `&` reference
-    --> src/ownership/ownership.rs:115:9
+    --> bin/ownership/ownership.rs:115:9
      |
      115 |         str_ref.push_str(" modify str");
      |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `str_ref` is a `&` reference, so the data it refers to cannot be borrowed as mutable
@@ -138,7 +138,7 @@ pub mod reference_borrow {
         let ref1 = &mut str;
         /*
           error[E0499]: cannot borrow `str` as mutable more than once at a time
-            --> src/ownership/ownership.rs:139:20
+            --> bin/ownership/ownership.rs:139:20
             |
         138 |         let ref1 = &mut str;
             |                    -------- first mutable borrow occurs here
@@ -168,7 +168,7 @@ pub mod reference_borrow {
 
     /*
     error[E0106]: missing lifetime specifier
-      --> src/ownership/ownership.rs:169:36
+      --> bin/ownership/ownership.rs:169:36
         |
     169 |     fn dangle_reference_study() -> &String {
         |                                    ^ expected named lifetime parameter

@@ -4,7 +4,7 @@ use core::slice;
 /// ```txt
 /// r1 is 10
 /// r2 is 10
-/// thread 'main' panicked at 'misaligned pointer dereference: address must be a multiple of 0x4 but is 0x12345', study-example/src/advance_feature/unsafe_rust.rs:11:9
+/// thread 'main' panicked at 'misaligned pointer dereference: address must be a multiple of 0x4 but is 0x12345', study-example/bin/advance_feature/unsafe_rust.rs:11:9
 /// note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 /// ```
 fn define_raw_pointer() {
@@ -23,7 +23,7 @@ fn define_raw_pointer() {
 
 /// 如果不在unsafe代码块执行则会编译时出现如下错误
 /// error[E0133]: call to unsafe function is unsafe and requires unsafe function or block
-///  --> study-example/src/advance_feature/unsafe_rust.rs:27:9
+///  --> study-example/bin/advance_feature/unsafe_rust.rs:27:9
 ///    |
 /// 27 |         dangerous();
 ///    |         ^^^^^^^^^^^ call to unsafe function

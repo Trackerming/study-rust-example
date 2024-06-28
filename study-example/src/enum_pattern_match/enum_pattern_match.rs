@@ -82,7 +82,7 @@ pub mod option_usage {
         let number: i32 = 32;
         /*
          error[E0277]: cannot add `option_usage::Option<i32>` to `i32`
-          --> src/enum_pattern_match/enum_pattern_match.rs:76:26
+          --> bin/enum_pattern_match/enum_pattern_match.rs:76:26
            |
         76 |         let sum = number + some_number;
            |                          ^ no implementation for `i32 + option_usage::Option<i32>`

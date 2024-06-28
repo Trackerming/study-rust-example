@@ -11,7 +11,7 @@ pub mod define_init_struct; /*{
 
                                 /*
                                  error[E0106]: missing lifetime specifier
-                                   --> src/struct_related/struct_related.rs:11:20
+                                   --> bin/struct_related/struct_related.rs:11:20
                                    |
                                 11 |         user_name: &str,
                                    |                    ^ expected named lifetime parameter

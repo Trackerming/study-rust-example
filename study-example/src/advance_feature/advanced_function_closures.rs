@@ -51,7 +51,7 @@ fn init_enum_type() {
 
 /// 编译报如下的错
 /// error[E0746]: return type cannot have an unboxed trait object
-///  --> study-example/src/advance_feature/advanced_function_closures.rs:52:24
+///  --> study-example/bin/advance_feature/advanced_function_closures.rs:52:24
 ///   |
 /// 52 | fn return_closure() -> dyn Fn(i32) -> i32 {
 ///    |                        ^^^^^^^^^^^^^^^^^^ doesn't have a size known at compile-time
