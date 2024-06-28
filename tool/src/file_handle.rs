@@ -96,7 +96,7 @@ mod test_file_hanle {
 
     #[test]
     fn test_read_line() {
-        let lines = read_file_line("./src/file_handle.rs", "to_csv_file").unwrap();
+        let lines = read_file_line("./bin/file_handle.rs", "to_csv_file").unwrap();
         assert_eq!(lines.len(), 5);
     }
 
@@ -108,7 +108,7 @@ mod test_file_hanle {
         {"address": "0x68424a917c5c6dbd9088b5b32d194b2822e1dcb3", "native_token": 1859555000000000, "erc20_token": 43021000000000000000},
         {"address": "0x8d9b6706e966ab1294fe85a6684b2c4f8ab4e58d", "native_token": 6307108873877526, "erc20_token": 254345212960000000000}
     ]"#;
-        let file_path = "./src/test_to_csv_file.csv";
+        let file_path = "./bin/test_to_csv_file.csv";
         let to_result = to_csv_file(file_path, json_data);
         println!("to_result: {:?}", to_result);
         assert_eq!(to_result.is_err(), false);

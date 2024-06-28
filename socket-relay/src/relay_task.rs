@@ -103,10 +103,10 @@ impl RelayTask {
 
     async fn handle_src_conn_rx(&mut self, rx_result: io::Result<usize>) -> Result<bool> {
         if !self.handle_rx_result(rx_result).await? {
-            debug!("recv empty buf from src connection, quitting comm");
+            debug!("recv empty buf from bin connection, quitting comm");
             return Ok(false);
         }
-        info!("handle src conn rx bytes len: {}", self.src_rx_bytes.len());
+        info!("handle bin conn rx bytes len: {}", self.src_rx_bytes.len());
         let _ = match &mut self.dest_conn {
             ConnectionStream::TcpStreamType(stream) => {
                 stream.write_buf(&mut self.src_rx_bytes).await?

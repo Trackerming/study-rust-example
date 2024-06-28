@@ -47,8 +47,8 @@
 ```shell
 ../target/debug/socket_relay_bin --tcp-address "127.0.0.1:9443" --vsock-address "127.0.0.1:8443"
 ../target/debug/socket_relay_bin --tcp-address "127.0.0.1:7443" --vsock-address "127.0.0.1:9443" --tcp-to-vsock
-ts-node src/server.ts # listen 9443
-ts-node src/request.ts # 请求到7443
+ts-node bin/server.ts # listen 9443
+ts-node bin/request.ts # 请求到7443
 ```
 
 - 实际验证过程
@@ -59,7 +59,7 @@ sudo nitro-cli build-enclave --docker-uri testenclave:v1 --output-file testencla
 sudo nitro-cli run-enclave --eif-path testenclave.eif --memory 4096 --cpu-count 2  --enclave-cid 16 --debug-mode
 nitro-cli console --enclave-id i-*-enc*
 ./socket_relay_bin --tcp-address "127.0.0.1:8443" --vsock-address "16:8888" --max-concurrent-connections 1024 --tcp-to-vsock
-ts-node src/request.ts # 请求到8443
+ts-node bin/request.ts # 请求到8443
 ```
 
 ##### 开发问题记录
