@@ -1,7 +1,7 @@
 use crate::hex_string_to_bytes;
-use sha2::{Digest, Sha256};
 use num_integer::Integer;
 use num_traits::cast::ToPrimitive;
+use sha2::{Digest, Sha256};
 
 // 编码原理：
 // 准备数据：将要编码的二进制数据准备好。

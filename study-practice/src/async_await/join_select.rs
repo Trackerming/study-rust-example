@@ -157,7 +157,7 @@ fn recursive() -> BoxFuture<'static, ()> {
 /// trait中定义async fn
 /*
 error[E0706]: functions in traits cannot be declared `async`
-   --> study-practice/src/async_await/join_select.rs:158:5
+   --> study-practice/bin/async_await/join_select.rs:158:5
     |
 158 |     async fn test();
     |     -----^^^^^^^^^^^
