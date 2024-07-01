@@ -8,3 +8,5 @@ pub mod tree_iterator;
 
 pub mod fibonacci_list;
 pub mod two_sum;
+
+pub mod hash_map;
