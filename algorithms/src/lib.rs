@@ -10,3 +10,5 @@ pub mod fibonacci_list;
 pub mod two_sum;
 
 pub mod hash_map;
+
+pub mod bit_op;
