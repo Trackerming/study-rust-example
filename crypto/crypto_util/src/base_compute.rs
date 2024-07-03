@@ -74,6 +74,12 @@ pub fn gcd(mut a: usize, mut b: usize) -> usize {
     a
 }
 
+// 欧几里得除法定义：对于整数 𝑎 和 𝑏（其中 𝑏≠0），存在唯一的整数对 (𝑞,𝑟)，使得 𝑎=𝑏𝑞+𝑟，其中 𝑞 是商, 𝑟 是余数，且 0≤𝑟<|𝑏|
+pub fn euclidean_division(a: usize, b: usize) -> (usize, usize) {
+    assert_ne!(b, 0);
+    (a / b, a % b)
+}
+
 pub fn lcm(a: usize, b: usize) -> usize {
     a * b / gcd(a, b)
 }
@@ -129,5 +135,35 @@ mod test_base_compute_mod {
         let modules = [3, 4, 5];
         let crt = chinese_remainder_theorem(&residues, &modules);
         assert_eq!(crt, 11);
+    }
+
+    fn capture_panic<F: FnOnce() -> (usize, usize) + std::panic::UnwindSafe>(
+        f: F,
+    ) -> Option<String> {
+        let result = std::panic::catch_unwind(f);
+        match result {
+            Ok(_) => None,
+            Err(err) => {
+                if let Some(s) = err.downcast_ref::<&str>() {
+                    Some(s.to_string())
+                } else if let Some(s) = err.downcast_ref::<String>() {
+                    Some(s.clone())
+                } else {
+                    Some("unknown panic type".to_string())
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_euclidean_division() {
+        let result = euclidean_division(10, 3);
+        assert_eq!(result, (3, 1));
+        let result = capture_panic(|| euclidean_division(3, 0));
+        // println!("result: {:?}", result);
+        assert_eq!(
+            Some("assertion `left != right` failed\n  left: 0\n right: 0".to_string()),
+            result
+        );
     }
 }
