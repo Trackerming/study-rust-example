@@ -64,8 +64,25 @@ pub fn tate_pairing(p1: &Point, p2: &Point, scalar: usize, mod_value: usize) -> 
     (result.x * p2.x + result.y * p2.y) % mod_value
 }
 
+// 拓展欧几里得算法：a*x+b*y=gcd(a,b)，返回的位x，y和gcd
+pub fn extend_euclidean_algorithm(mut a: isize, mut b: isize) -> (isize, isize, isize) {
+    let (mut x1, mut y1, mut x2, mut y2) = (1 as isize, 0 as isize, 0 as isize, 1 as isize);
+    while b > 0 {
+        let (q, r) = euclidean_division(a as usize, b as usize);
+        (a, b) = (b, r as isize);
+        (x1, x2) = (x2, x1 - q as isize * x2);
+        (y1, y2) = (y2, y1 - q as isize * y2);
+    }
+    return (a, x1, y1);
+}
+
 // 求解最大公约数，欧几里德算法计算
 pub fn gcd(mut a: usize, mut b: usize) -> usize {
+    // 如果a比b小，则交换值，保证a始终不小于b
+    // 即便不加这段，下面计算的过程还是会在第一次循环调整过来
+    if a < b {
+        std::mem::swap(&mut a, &mut b);
+    }
     while b > 0 {
         let rem = a % b;
         a = b;
@@ -105,8 +122,10 @@ mod test_base_compute_mod {
         assert_eq!(gcd_val, 10);
         let a = 33;
         let b = 30;
-        let gcd = gcd(a, b);
-        assert_eq!(gcd, 3);
+        let gcd_val = gcd(a, b);
+        assert_eq!(gcd_val, 3);
+        let gcd_val = gcd(b, a);
+        assert_eq!(gcd_val, 3);
         let a = 33;
         let b = 2;
         let gcd = crate::base_compute::gcd(a, b);
@@ -165,5 +184,12 @@ mod test_base_compute_mod {
             Some("assertion `left != right` failed\n  left: 0\n right: 0".to_string()),
             result
         );
+    }
+
+    #[test]
+    fn test_extend_euclidean_algorithm() {
+        let result = extend_euclidean_algorithm(30, 24);
+        println!("result: {:?}", result);
+        assert_eq!(result, (6, 1, -1));
     }
 }
