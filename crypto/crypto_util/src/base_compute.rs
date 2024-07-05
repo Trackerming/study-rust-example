@@ -76,6 +76,43 @@ pub fn extend_euclidean_algorithm(mut a: isize, mut b: isize) -> (isize, isize, 
     return (a, x1, y1);
 }
 
+// ax+by=gcd(a,b),ax+kn=1,构造kn为mod_val（n）的倍数，则ax=1 mod n，x就是a的逆元
+pub fn mod_inverse_by_eea(a: isize, mod_value: isize) -> Option<isize> {
+    let (gcd_val, mut x, _) = extend_euclidean_algorithm(a, mod_value);
+    return if gcd_val == 1 {
+        if x < 0 {
+            x += mod_value;
+        }
+        Some(x)
+    } else {
+        None
+    };
+}
+
+// 递归实现拓展欧几里得算法，ax+by=gcd(a, b)
+pub fn ext_gcd(a: isize, b: isize) -> (isize, isize) {
+    return if b == 0 {
+        (1, 0)
+    } else {
+        let (mut x, mut y) = ext_gcd(b, a % b);
+        (x, y) = (y, x - (a / b) * y);
+        (x, y)
+    };
+}
+
+// 递归求解逆元
+pub fn mod_inverse_recursive(a: isize, n: isize) -> Option<isize> {
+    return if gcd(a as usize, n as usize) == 1 {
+        let mut w = ext_gcd(a, n).0;
+        if w < 0 {
+            w += n;
+        }
+        Some(w)
+    } else {
+        None
+    };
+}
+
 // 求解最大公约数，欧几里德算法计算
 pub fn gcd(mut a: usize, mut b: usize) -> usize {
     // 如果a比b小，则交换值，保证a始终不小于b
@@ -191,5 +228,19 @@ mod test_base_compute_mod {
         let result = extend_euclidean_algorithm(30, 24);
         println!("result: {:?}", result);
         assert_eq!(result, (6, 1, -1));
+        let result = ext_gcd(30, 24);
+        assert_eq!(result, (1, -1));
+    }
+
+    #[test]
+    fn test_get_mod_inverse() {
+        let val = mod_inverse_by_eea(7, 69);
+        println!("{} * 7 mod 69 = 1", val.unwrap());
+        assert_eq!(val, Some(10));
+        let val = mod_inverse_recursive(7, 69);
+        assert_eq!(val, Some(10));
+        let val = mod_inverse_recursive(9, 23);
+        println!("{} * 9 mod 23 = 1", val.unwrap());
+        assert_eq!(val, Some(18));
     }
 }
