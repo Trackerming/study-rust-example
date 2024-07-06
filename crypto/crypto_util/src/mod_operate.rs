@@ -55,44 +55,6 @@ where
     T: Num,
     T: From<isize>,
 {
-    fn gcd(mut a: T, mut b: T) -> T {
-        if a < b {
-            std::mem::swap(&mut a, &mut b);
-        }
-        while b > 0.into() {
-            let rem = a % b;
-            a = b;
-            b = rem;
-        }
-        a
-    }
-
-    fn euclidean_division(a: T, b: T) -> (T, T) {
-        assert_ne!(b, 0.into());
-        (a / b, a % b)
-    }
-
-    fn extend_euclidean_algorithm(mut a: T, mut m: T) -> (T, T, T) {
-        let (mut x1, mut y1, mut x2, mut y2) = (1.into(), 0.into(), 0.into(), 1.into());
-        while m > 0.into() {
-            let (q, r) = Self::euclidean_division(a, m);
-            (a, m) = (m, r);
-            (x1, x2) = (x2, x1 - q * x2);
-            (y1, y2) = (y2, y1 - q * y2);
-        }
-        (a, x1, y1)
-    }
-
-    fn extend_euclidean_recursive(a: T, m: T) -> (T, T) {
-        return if m == 0.into() {
-            (1.into(), 0.into())
-        } else {
-            let (mut x, mut y) = Self::extend_euclidean_recursive(m, a % m);
-            (x, y) = (y, x - (a / m) * y);
-            (x, y)
-        };
-    }
-
     fn mod_abs(a: T, m: T) -> T {
         assert!(m > 0.into());
         let mut result = a;
@@ -133,7 +95,108 @@ where
         }
         result
     }
+
+    fn euclidean_division(a: T, b: T) -> (T, T) {
+        assert_ne!(b, 0.into());
+        (a / b, a % b)
+    }
+
+    fn extend_euclidean_algorithm(mut a: T, mut m: T) -> (T, T, T) {
+        let (mut x1, mut y1, mut x2, mut y2) = (1.into(), 0.into(), 0.into(), 1.into());
+        while m > 0.into() {
+            let (q, r) = Self::euclidean_division(a, m);
+            (a, m) = (m, r);
+            (x1, x2) = (x2, x1 - q * x2);
+            (y1, y2) = (y2, y1 - q * y2);
+        }
+        (a, x1, y1)
+    }
+
+    fn extend_euclidean_recursive(a: T, m: T) -> (T, T) {
+        return if m == 0.into() {
+            (1.into(), 0.into())
+        } else {
+            let (mut x, mut y) = Self::extend_euclidean_recursive(m, a % m);
+            (x, y) = (y, x - (a / m) * y);
+            (x, y)
+        };
+    }
+
+    fn gcd(mut a: T, mut b: T) -> T {
+        if a < b {
+            std::mem::swap(&mut a, &mut b);
+        }
+        while b > 0.into() {
+            let rem = a % b;
+            a = b;
+            b = rem;
+        }
+        a
+    }
 }
 
 #[cfg(test)]
-mod mod_operate_test {}
+mod mod_operate_test {
+    use super::*;
+
+    #[test]
+    fn test_mod_abs() {
+        let result1 = CryptoMod::mod_abs(-10, 23);
+        let result2 = CryptoMod::mod_abs(103, 23);
+        let result3 = CryptoMod::mod_abs(10, 23);
+        assert_eq!(result1, 13);
+        assert_eq!(result2, 11);
+        assert_eq!(result3, 10);
+    }
+
+    #[test]
+    fn test_euclidean_division() {
+        let result1 = CryptoMod::euclidean_division(12, 35);
+        let result2 = CryptoMod::euclidean_division(12, 6);
+        assert_eq!(result1, (0, 12));
+        assert_eq!(result2, (2, 0));
+    }
+
+    #[test]
+    fn test_extend_euclidean_algorithm() {
+        let (a, m) = (13, 27);
+        let result1 = CryptoMod::extend_euclidean_algorithm(a, m);
+        let result2 = CryptoMod::extend_euclidean_recursive(a, m);
+        println!("{:?}", result1);
+        println!("{:?}", result2);
+        assert_eq!(result1.1, result2.0);
+        assert_eq!(result1.2, result2.1);
+    }
+
+    #[test]
+    fn test_gcd() {
+        let (a1, b1) = (246, 389);
+        let result1 = CryptoMod::gcd(a1, b1);
+        let (a2, b2) = (24, 36);
+        let result2 = CryptoMod::gcd(a2, b2);
+        let (a3, b3) = (24, 48);
+        let result3 = CryptoMod::gcd(a3, b3);
+        let (gcd_val, _, _) = CryptoMod::extend_euclidean_algorithm(a3, b3);
+        println!("{result1}-{result2}-{result3}");
+        assert_eq!(result1, 1);
+        assert_eq!(result2, 12);
+        assert_eq!(result3, 24);
+        assert_eq!(result3, gcd_val);
+    }
+
+    #[test]
+    fn test_mod_inverse() {
+        let result = CryptoMod::mod_inverse(7, 69);
+        assert_eq!(result, Some(10));
+        let result = CryptoMod::mod_inverse(9, 23);
+        assert_eq!(result, Some(18));
+        let result = CryptoMod::mod_inverse(12, 22);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_mod_exp() {
+        let result = CryptoMod::mod_exp(7, 5, 13);
+        assert_eq!(result, 11);
+    }
+}
