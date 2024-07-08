@@ -46,6 +46,10 @@ pub trait ModOperate<T: Num> {
     fn extend_euclidean_recursive(a: T, m: T) -> (T, T);
     // 求解两个数的最大公约数，采用欧几里得辗转相除法
     fn gcd(a: T, b: T) -> T;
+    // 欧拉定理
+    fn euler_theorem(a: T, m: T) -> T;
+    // 欧拉函数
+    fn euler_phi(a: T, m: T) -> T;
 }
 
 struct CryptoMod {}
@@ -53,7 +57,7 @@ struct CryptoMod {}
 impl<T> ModOperate<T> for CryptoMod
 where
     T: Num,
-    T: From<isize>,
+    T: From<isize> + Into<isize>,
 {
     fn mod_abs(a: T, m: T) -> T {
         assert!(m > 0.into());
@@ -133,6 +137,25 @@ where
         }
         a
     }
+
+    // 统计m范围内与m互质的元素的个数
+    fn euler_phi(a: T, m: T) -> T {
+        let mut count = 0.into();
+        for i in 1..(m.into() + 1) {
+            if Self::gcd(m, i.into()) == 1.into() {
+                count = count + 1.into();
+            }
+        }
+        return count;
+    }
+
+    // 欧拉定理
+    fn euler_theorem(a: T, m: T) -> T {
+        assert_eq!(CryptoMod::gcd(m, a), 1.into());
+        let phi_m = CryptoMod::euler_phi(a, m);
+        let result = CryptoMod::mod_exp(a, phi_m, m);
+        return result;
+    }
 }
 
 #[cfg(test)]
@@ -198,5 +221,16 @@ mod mod_operate_test {
     fn test_mod_exp() {
         let result = CryptoMod::mod_exp(7, 5, 13);
         assert_eq!(result, 11);
+    }
+
+    #[test]
+    fn test_euler_theorem() {
+        let (a, m) = (7, 15);
+        let phi_m = CryptoMod::euler_phi(a, m);
+        println!("欧拉函数：phi({})={}=phi(3)*phi(5)=2*4", m, phi_m);
+        assert_eq!(phi_m, 8);
+        let result = CryptoMod::euler_theorem(a, m);
+        assert_eq!(result, 1);
+        println!("欧拉定理：{}^phi_m({})=1 mod {}", a, m, m);
     }
 }
