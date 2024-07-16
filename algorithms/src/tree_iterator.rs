@@ -137,6 +137,22 @@ where
     return result;
 }
 
+pub fn bfs_level_order(root: &Rc<RefCell<TreeNode<i32>>>) -> Vec<i32> {
+    let mut que = VecDeque::new();
+    que.push_back(root.clone());
+    let mut results = Vec::new();
+    while let Some(node) = que.pop_front() {
+        results.push(node.borrow().val);
+        if let Some(left) = node.borrow().left.as_ref() {
+            que.push_back(left.clone());
+        }
+        if let Some(right) = node.borrow().right.as_ref() {
+            que.push_back(right.clone());
+        }
+    }
+    results
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -176,5 +192,14 @@ mod test {
         let result = post_order_iterator(tree.unwrap().borrow().deref());
         println!("result: {:?}", result);
         assert_eq!(result, vec![1, 7, 5, 12, 10, 8]);
+    }
+
+    #[test]
+    fn test_bfs() {
+        let tree: TreeLink<i32> =
+            tree!(8, tree!(5, tree!(1), tree!(7)), tree!(10, None, tree!(12)));
+        let results = bfs_level_order(&tree.clone().unwrap());
+        println!("results: {:?}", results);
+        assert_eq!(results, vec![8, 5, 10, 1, 7, 12]);
     }
 }
