@@ -14,3 +14,5 @@ pub mod hash_map;
 pub mod bit_op;
 
 pub mod greed;
+
+pub mod avl;
